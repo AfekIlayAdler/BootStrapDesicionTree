@@ -1,11 +1,12 @@
-from Tree.split import Split, CategoricalBinarySplit
+from Tree.split import Split, CategoricalBinarySplit, NumericSplit
+import pandas as pd
 
 
 class FindBestSplit:
     def _evaluate(self, x, y):
         raise NotImplementedError
 
-    def get_split(self, x, y) -> Split:
+    def get_split(self, df:pd.DataFrame) -> Split:
         raise NotImplementedError
 
 
@@ -13,25 +14,41 @@ class NumericBestSplitter(FindBestSplit):
     def _evaluate(self, x, y):
         pass
 
-    def get_split(self, x, y) -> Split:
+    def get_split(self, df) -> Split:
         pass
 
 
-class CategorialBestSplitter(FindBestSplit):
+class CategoricalBestSplitter(FindBestSplit):
     def _evaluate(self, x, y):
         pass
 
-    def get_split(self, x, y) -> Split:
+    def get_split(self,df) -> Split:
         pass
 
 
-class MoocCategorialBinaryBestSplitter(FindBestSplit):
+class MocCategoricalBinaryBestSplitter(FindBestSplit):
+    def __init__(self):
+        self.split = CategoricalBinarySplit
+
     def _evaluate(self, x, y):
         pass
 
-    def get_split(self, x, y) -> Split:
+    def get_split(self,df) -> Split:
+        x = df[df.columns[0]]
         col_name = x.name
         score = 1
         right_values = x.unique()[:1]
         left_values = x.unique()[1:]
-        return CategoricalBinarySplit(col_name, score, right_values, left_values)
+        return self.split(col_name, score, right_values, left_values)
+
+
+class MocNumericBestSplitter(FindBestSplit):
+    def __init__(self):
+        self.split = NumericSplit
+
+    def _evaluate(self, x, y):
+        pass
+
+    def get_split(self, df) -> Split:
+        col = df[df.columns[0]]
+        return self.split(col.name, 1, 1)

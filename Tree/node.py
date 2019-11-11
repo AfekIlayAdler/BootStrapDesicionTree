@@ -1,28 +1,25 @@
-from typing import Optional
-
-
 class Node:
-    def __init__(self, field=None, is_leaf=False, prediction=None, splitting_point=None):
-        self.splitting_point = splitting_point
-        self.is_leaf = is_leaf
-        self.field = field
+    raise NotImplementedError
+
+
+class Leaf(Node):
+    def __init__(self, prediction):
         self.prediction = prediction
+
+
+class InternalNode(Node):
+    def __init__(self, field=None):
+        self.field = field
         self.children = {}
 
     def go_down(self, column, value):
         raise NotImplementedError
 
-    # def predict(self, column: str, value: [str, float, int]):
-    #     if self.is_leaf:
-    #         return self
-    #     else:
-    #         return self.split(column, value)
 
-
-class NumericBinaryNode(Node):
-    def __init__(self, thr: Optional[float] = None, field=None, is_leaf=False, prediction=None, splitting_point=None):
-        super().__init__(field, is_leaf, prediction, splitting_point)
-        self.thr = thr
+class NumericBinaryNode(InternalNode):
+    def __init__(self, field, splitting_point: float):
+        super().__init__(field)
+        self.thr = splitting_point
 
     def go_down(self, column, value):
         pass

@@ -1,6 +1,7 @@
 from Tree.node import Node
 from Tree.find_best_split import FindBestSplit
 from Tree.predictor import Predictor
+from Tree.split import Split
 from Tree.utils import get_cols_dtypes
 
 import pandas as pd
@@ -19,24 +20,23 @@ class BaseTree:
     def calculate_purity(self, y) -> float:
         return self.predictor.calc_impurity(y)
 
-    def get_split(self, train: pd.DataFrame) -> Node:
+    def get_split(self, df: pd.DataFrame) -> Node:
         """
         creates a node, saves the data of it's children
         """
-        purity = self.calculate_purity(train[self.label_column])
+        purity = self.calculate_purity(df[self.label_column])
         split, best_split_score = None, 0
         for col, col_type in self.column_dtypes.items():
             if col_type in ('category', 'bool'):
-                col_best_split = self.categorical_splitter.get_split(train[col], train[self.label_column])
+                col_best_split = self.categorical_splitter.get_split(df[col, self.label_column])
             else:
-                col_best_split = self.numeric_splitter.get_split(train[col], train[self.label_column])
-            if col_best_split.score > best_split_score:
+                col_best_split = self.numeric_splitter.get_split(df[col, self.label_column])
+            if col_best_split.purity > best_split_score:
                 split = col_best_split
-        if purity - split.score <= self.thr:
-            # TODO : create leaf
-            return split.create_leaf(train[self.label_column])
+        if (purity - split.purity) <= self.thr:
+            return Split.create_leaf(df[self.label_column])
         # TODO : do split
-        return split.do_split(train)
+        return split.create_node(df)
 
     def split(self, node: Node):
         children_data = node.children_data
