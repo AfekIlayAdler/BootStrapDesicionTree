@@ -1,4 +1,4 @@
-from Tree.split import Split
+from Tree.split import Split, CategoricalBinarySplit
 
 
 class FindBestSplit:
@@ -23,3 +23,15 @@ class CategorialBestSplitter(FindBestSplit):
 
     def get_split(self, x, y) -> Split:
         pass
+
+
+class MoocCategorialBinaryBestSplitter(FindBestSplit):
+    def _evaluate(self, x, y):
+        pass
+
+    def get_split(self, x, y) -> Split:
+        col_name = x.name
+        score = 1
+        right_values = x.unique()[:1]
+        left_values = x.unique()[1:]
+        return CategoricalBinarySplit(col_name, score, right_values, left_values)
