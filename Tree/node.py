@@ -1,6 +1,5 @@
 class Node:
     def __init__(self):
-        self.is_root = False
         self.is_leaf = False
         self.prediction = None
         self.data = None
