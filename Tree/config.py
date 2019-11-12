@@ -1,0 +1,1 @@
+PANDAS_CATEGORICAL_COLS = ('category', 'bool')
