@@ -8,7 +8,7 @@ from Tree.utils import get_cols_dtypes
 
 
 class BaseTree:
-    def __init__(self, n_splitter: FindBestSplit, c_splitter: FindBestSplit,predictor: Predictor):
+    def __init__(self, n_splitter: FindBestSplit, c_splitter: FindBestSplit, predictor: Predictor):
         self.numeric_splitter = n_splitter
         self.categorical_splitter = c_splitter
         self.predictor = predictor
@@ -20,23 +20,24 @@ class BaseTree:
     def calculate_purity(self, y) -> float:
         return self.predictor.calc_impurity(y)
 
-    def get_splitter(self,col_type):
+    def get_splitter(self, col_type):
         if col_type in PANDAS_CATEGORICAL_COLS:
             return self.categorical_splitter
         return self.numeric_splitter
 
     def get_node(self, df: pd.DataFrame) -> [InternalNode, Leaf]:
         # find the best split in order to create and return a node
-        #TODO - add:
+        # TODO - add:
         # max depth
         # min_samples_split
         # min_samples_leaf
         # min impurity increase
+        # TODO - maybe we don't need purity
         purity = self.calculate_purity(df[self.label_column])
         best_node, best_node_score = None, 0
         for col, col_type in self.column_dtypes.items():
             splitter = self.get_splitter(col_type)
-            col_best_node = splitter.get_split(df[[col, self.label_column]])
+            col_best_node = splitter.get_split(df[[col, self.label_column]], n = df.shape[0], col = col)
             if col_best_node.purity > best_node_score:
                 best_node = col_best_node
                 best_node_score = col_best_node.purity
@@ -57,13 +58,13 @@ class BaseTree:
                 self.split(child_node)
 
     def build(self, data: pd.DataFrame):
-        self.column_dtypes = get_cols_dtypes(data,self.label_column)
+        self.column_dtypes = get_cols_dtypes(data, self.label_column)
         root = self.get_node(data)
         self.split(root)
         self.root = root
 
     def predict(self, row):
-        #TODO : fix function
+        # TODO : fix function
         node = self.root
         while not node.is_leaf:
             value = row[node.field]
