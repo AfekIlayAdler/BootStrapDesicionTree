@@ -1,7 +1,9 @@
 import numpy as np
+import pandas as pd
 
-from Tree.node import NumericBinaryNode, CategoricalBinaryNode
+from Tree.node import NumericBinaryNode, CategoricalBinaryNode, InternalNode
 from Tree.splitters.splitter_abstract import Splitter
+from Tree.splitters.utils import get_numeric_node, get_categorical_node
 
 
 class Regression(Splitter):
@@ -33,18 +35,16 @@ class Regression(Splitter):
 class NumericFeatureRegressionSplitter(Regression):
     def __init__(self):
         super().__init__(NumericBinaryNode)
+        self.get_node_function = get_numeric_node
 
-    def get_node(self, series, n, col_name):
-        col_values, split_index, impurity, thr = self.get_split(series, n)
-        return self.node(col_name, impurity, thr)
+    def get_node(self, series: pd.Series, n: int, col_name: str) -> InternalNode:
+        return self.get_node_function(self, series, n, col_name)
 
 
 class CategoricalFeatureRegressionSplitter(Regression):
     def __init__(self):
         super().__init__(CategoricalBinaryNode)
+        self.get_node_function = get_categorical_node
 
     def get_node(self, series, n, col_name):
-        series = self.group_by_mean_response_value(series)
-        col_values, split_index, impurity, thr = self.get_split(series, n)
-        left_values, right_values = col_values[:split_index], col_values[split_index:]
-        return self.node(impurity, col_name, left_values, right_values)
+        return self.get_node_function(self, series, n, col_name)

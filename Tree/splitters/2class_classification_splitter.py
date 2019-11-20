@@ -4,6 +4,8 @@ from Tree.splitters.splitter_abstract import Splitter
 import numpy as np
 import pandas as pd
 
+from Tree.splitters.utils import get_numeric_node, get_categorical_node
+
 
 class TwoClassClassification(Splitter):
     def __init__(self, node):
@@ -28,18 +30,16 @@ class TwoClassClassification(Splitter):
 class NumericFeature2ClassClassificationSplitter(TwoClassClassification):
     def __init__(self):
         super().__init__(NumericBinaryNode)
+        self.get_node_function = get_numeric_node
 
     def get_node(self, series: pd.Series, n: int, col_name: str) -> InternalNode:
-        col_values, split_index, impurity, thr = self.get_split(series, n)
-        return self.node(col_name, impurity, thr)
+        return self.get_node_function(self, series, n, col_name)
 
 
 class CategoricalFeatureR2ClassClassificationSplitter(TwoClassClassification):
     def __init__(self):
         super().__init__(CategoricalBinaryNode)
+        self.get_node_function = get_categorical_node
 
     def get_node(self, series, n, col_name):
-        series = self.group_by_mean_response_value(series)
-        col_values, split_index, impurity, thr = self.get_split(series, n)
-        left_values, right_values = col_values[:split_index], col_values[split_index:]
-        return self.node(impurity, col_name, left_values, right_values)
+        return self.get_node_function(self, series, n, col_name)
