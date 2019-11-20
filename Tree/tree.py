@@ -1,14 +1,13 @@
 import pandas as pd
 
 from Tree.config import PANDAS_CATEGORICAL_COLS
-from Tree.find_best_split import FindBestSplit
-from Tree.node import Node, Leaf, InternalNode
+from Tree.node import Leaf, InternalNode
 from Tree.predictor import Predictor
 from Tree.utils import get_cols_dtypes
 
 
 class BaseTree:
-    def __init__(self, n_splitter: FindBestSplit, c_splitter: FindBestSplit, predictor: Predictor):
+    def __init__(self, n_splitter, c_splitter, predictor: Predictor):
         self.numeric_splitter = n_splitter
         self.categorical_splitter = c_splitter
         self.predictor = predictor
@@ -35,9 +34,10 @@ class BaseTree:
         # TODO - maybe we don't need purity
         purity = self.calculate_purity(df[self.label_column])
         best_node, best_node_score = None, 0
+        n_examples = df.shape[0]
         for col, col_type in self.column_dtypes.items():
             splitter = self.get_splitter(col_type)
-            col_best_node = splitter.get_split(df[[col, self.label_column]], n = df.shape[0], col = col)
+            col_best_node = splitter.get_split(pd.Series(col, index=df[self.label_column]), n_examples, col=col)
             if col_best_node.purity > best_node_score:
                 best_node = col_best_node
                 best_node_score = col_best_node.purity
@@ -64,7 +64,6 @@ class BaseTree:
         self.root = root
 
     def predict(self, row):
-        # TODO : fix function
         node = self.root
         while not node.is_leaf:
             value = row[node.field]
