@@ -35,16 +35,14 @@ class Regression(Splitter):
 class NumericFeatureRegressionSplitter(Regression):
     def __init__(self):
         super().__init__(NumericBinaryNode)
-        self.get_node_function = get_numeric_node
 
     def get_node(self, series: pd.Series, n: int, col_name: str) -> InternalNode:
-        return self.get_node_function(self, series, n, col_name)
+        return get_numeric_node(self,series, n, col_name)
 
 
 class CategoricalFeatureRegressionSplitter(Regression):
     def __init__(self):
         super().__init__(CategoricalBinaryNode)
-        self.get_node_function = get_categorical_node
 
     def get_node(self, series, n, col_name):
-        return self.get_node_function(self, series, n, col_name)
+        return get_categorical_node(self, series, n, col_name)

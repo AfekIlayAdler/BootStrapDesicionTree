@@ -2,22 +2,23 @@ import pandas as pd
 
 from Tree.config import PANDAS_CATEGORICAL_COLS
 from Tree.node import Leaf, InternalNode
-from Tree.predictor import Predictor
-from Tree.utils import get_cols_dtypes
+from Tree.splitters.regression_splitter import NumericFeatureRegressionSplitter, CategoricalFeatureRegressionSplitter
+from Tree.utils import get_cols_dtypes, regression_impurity
+from pathlib import Path
 
 
 class BaseTree:
-    def __init__(self, n_splitter, c_splitter, predictor: Predictor):
+    def __init__(self, n_splitter, c_splitter, impurity: callable, label_column):
+        self.label_column = label_column
         self.numeric_splitter = n_splitter
         self.categorical_splitter = c_splitter
-        self.predictor = predictor
+        self.impurity = impurity
         self.root = None
-        self.label_column = None
         self.column_dtypes = None
         self.thr = None
 
-    def calculate_purity(self, y) -> float:
-        return self.predictor.calc_impurity(y)
+    def calculate_impurity(self, y) -> float:
+        return self.impurity(y)
 
     def get_splitter(self, col_type):
         if col_type in PANDAS_CATEGORICAL_COLS:
@@ -32,17 +33,19 @@ class BaseTree:
         # min_samples_leaf
         # min impurity increase
         # TODO - maybe we don't need purity
-        purity = self.calculate_purity(df[self.label_column])
+        print(df.shape)
+        purity = self.calculate_impurity(df[self.label_column])
         best_node, best_node_score = None, 0
         n_examples = df.shape[0]
         for col, col_type in self.column_dtypes.items():
             splitter = self.get_splitter(col_type)
-            col_best_node = splitter.get_split(pd.Series(col, index=df[self.label_column]), n_examples, col=col)
+            col_data = pd.Series(df[self.label_column].values, index=df[col].values)
+            col_best_node = splitter.get_node(col_data, n_examples, col)
             if col_best_node.purity > best_node_score:
                 best_node = col_best_node
                 best_node_score = col_best_node.purity
         if (purity - best_node.purity) <= self.thr:
-            return Leaf(self.predictor.predict_on_leaf(df[self.label_column]))
+            return Leaf(self.impurity.predict_on_leaf(df[self.label_column]))
         best_node.add_child_data(df)
         return best_node
 
@@ -50,10 +53,10 @@ class BaseTree:
         if isinstance(node, Leaf):
             raise Exception('method split got a leaf node as parameter')
         children_data = node.children_data
-        node.children = None
+        node.children_data = None
         for child_name, child_data in children_data.items():
             child_node = self.get_node(child_data)
-            node.add_child_nodes(child_node)
+            node.add_child_nodes(child_name, child_node)
             if not isinstance(child_node, Leaf):
                 self.split(child_node)
 
@@ -72,8 +75,17 @@ class BaseTree:
         return node.prediction
 
 
+class RegressionTree(BaseTree):
+    def __init__(self, label_column):
+        n_splitter = NumericFeatureRegressionSplitter()
+        c_splitter = CategoricalFeatureRegressionSplitter()
+        predictor = regression_impurity
+        super().__init__(n_splitter, c_splitter, predictor, label_column)
+
+
 if __name__ == '__main__':
-    df = pd.read_csv('desicion_tree_data.csv')
-    df['gender'] = df['gender'].astype('bool')
-    df['city'] = df['city'].astype('category')
-    pass
+    input_path = Path.cwd().parent / "Datasets\house_prices_regrssion\house_pricing_moc_dataset.csv"
+    df = pd.read_csv(input_path, dtype={'OverallCond': 'category', 'HouseStyle': 'category'})
+    tree = RegressionTree("SalePrice")
+    tree.build(df)
+    a = 5

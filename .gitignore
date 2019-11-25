@@ -1,3 +1,5 @@
 /.idea/*
 *.pyc
 *.csv
+/Datasets/house_prices_regrssion/.ipynb_checkpoints/prepare_data_for_tree_debugging-checkpoint.ipynb
+/Datasets/house_prices_regrssion/data/data_description.txt
