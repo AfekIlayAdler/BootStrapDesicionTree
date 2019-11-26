@@ -9,3 +9,12 @@ def get_cols_dtypes(df: pd.DataFrame, y_col_name) -> Dict:
 
 def regression_impurity(y: pd.Series):
     return np.var(y)
+
+
+def classification_impurity(y: pd.Series):
+    p = np.sum(y)
+    n = y.size
+    return n * p * (1 - p)
+
+
+impurity_dict = {'regression': regression_impurity, 'classification': classification_impurity}
