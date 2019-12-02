@@ -37,8 +37,8 @@ class NumericBinaryNode(InternalNode):
         self.thr = splitting_point
 
     def add_child_data(self, df):
-        left_child = df[df[self.field <= self.thr]]
-        right_child = df[df[self.field < self.thr]]
+        left_child = df[df[self.field] <= self.thr]
+        right_child = df[df[self.field] > self.thr]
         self.children_data.update(left=left_child, right=right_child)
 
     def get_child(self, column, value):
@@ -52,7 +52,7 @@ class CategoricalBinaryNode(InternalNode):
     left child is smaller:
     child names are left and right
     """
-    def __init__(self, purity, field, left_values, right_values):
+    def __init__(self, field,purity, left_values, right_values):
         super().__init__(purity, field)
         self.left_values = left_values
         self.right_values = right_values
