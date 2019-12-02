@@ -8,7 +8,7 @@ def get_cols_dtypes(df: pd.DataFrame, y_col_name) -> Dict:
 
 
 def regression_impurity(y: pd.Series):
-    return np.var(y)
+    return np.sum(np.square(y)-np.mean(y))
 
 
 def classification_impurity(y: pd.Series):
