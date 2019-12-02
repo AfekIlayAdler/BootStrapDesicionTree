@@ -17,40 +17,44 @@ def get_col_type(col_type):
 
 
 class BaseTree:
-    def __init__(self, splitter, label_col_name, thr):
+    def __init__(self, splitter, label_col_name, thr, min_samples_split=2):
         self.label_col_name = label_col_name
         self.splitter = splitter
         self.root = None
         self.column_dtypes = None
         self.thr = thr
         self.impurity = impurity_dict.get(self.splitter.type)
+        self.min_samples_split = min_samples_split
 
     def calculate_impurity(self, y) -> float:
         return self.impurity(y)
 
     def get_node(self, df: pd.DataFrame) -> [InternalNode, Leaf]:
-        print(df.shape[0])
-        if df.shape[0] == 17:
-            a = 5
-        # find the best split in order to create and return a node
-        # TODO - add:
-        # max depth
         # min_samples_split
-        # min_samples_leaf
-        # min impurity increase
-        # TODO - maybe we don't need purity
-        purity = self.calculate_impurity(df[self.label_col_name])
+        if df.shape[0] <= self.min_samples_split:
+            return Leaf(df[self.label_col_name].mean(), "min_samples_split")
+        print(df.shape[0])
+        # TODO - add:
+        #  max depth
+        #  min_samples_leaf
+        impurity = self.calculate_impurity(df[self.label_col_name])
         best_node, best_node_score = None, np.inf
         for col, col_type in self.column_dtypes.items():
             col_type = get_col_type(col_type)
             node_getter = GetNode(self.splitter, col, self.label_col_name, col_type)
             col_best_node = node_getter.get(df[[col, self.label_col_name]])
+            if col_best_node is None:
+                continue
             if col_best_node.purity < best_node_score:
                 best_node = col_best_node
                 best_node_score = col_best_node.purity
-        # no improvement
-        if (purity - best_node.purity) > self.thr:
-            return Leaf(df[self.label_col_name].mean())
+        if best_node is None:
+            # all x values are the same
+            return Leaf(df[self.label_col_name].mean(), "pure_node")
+        # min impurity increase
+        # print(f"purity increse: {(impurity - best_node.purity)}")
+        if (impurity - best_node.purity) < self.thr:
+            return Leaf(df[self.label_col_name].mean(), "min_impurity_increase")
         best_node.add_child_data(df)
         return best_node
 
@@ -73,15 +77,14 @@ class BaseTree:
 
     def predict(self, row):
         node = self.root
-        while not node.is_leaf:
+        while isinstance(node, InternalNode):
             value = row[node.field]
             node = node.get_child(value)
-        assert node.is_leaf, "arrived the end of the tree but node is not leaf"
         return node.prediction
 
 
 class CartRegressionTree(BaseTree):
-    def __init__(self, label_col_name, thr=np.inf):
+    def __init__(self, label_col_name, thr=0.01):
         super().__init__(CartRegressionSplitter(), label_col_name, thr)
 
 
@@ -90,4 +93,5 @@ if __name__ == '__main__':
     df = pd.read_csv(input_path, dtype={'OverallCond': 'category', 'HouseStyle': 'category'})
     tree = CartRegressionTree("SalePrice")
     tree.build(df)
-    a = 5
+    test = {'LotArea': 8450, 'YearBuilt': 2003, 'OverallCond': 'medium', 'HouseStyle': '2Story'}
+    print(tree.predict(test))

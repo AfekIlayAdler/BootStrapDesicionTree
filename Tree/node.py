@@ -1,16 +1,13 @@
 import pandas as pd
 
 
-class Node:
-    pass
-
-
-class Leaf(Node):
-    def __init__(self, prediction):
+class Leaf:
+    def __init__(self, prediction: float, stopping_criteria: str):
         self.prediction = prediction
+        self.stopping_criteria = stopping_criteria
 
 
-class InternalNode(Node):
+class InternalNode:
     def __init__(self, purity, field):
         self.field = field
         self.purity = purity
@@ -23,7 +20,7 @@ class InternalNode(Node):
     def add_child_nodes(self, child_name: str, child_node):
         self.children.update({child_name: child_node})
 
-    def get_child(self, column, value):
+    def get_child(self, value):
         raise NotImplementedError
 
 
@@ -32,6 +29,7 @@ class NumericBinaryNode(InternalNode):
     left child is smaller:
     child names are left and right
     """
+
     def __init__(self, field, purity, splitting_point: float):
         super().__init__(purity, field)
         self.thr = splitting_point
@@ -41,7 +39,7 @@ class NumericBinaryNode(InternalNode):
         right_child = df[df[self.field] > self.thr]
         self.children_data.update(left=left_child, right=right_child)
 
-    def get_child(self, column, value):
+    def get_child(self, value):
         if value <= self.thr:
             return self.children['left']
         return self.children['right']
@@ -52,7 +50,8 @@ class CategoricalBinaryNode(InternalNode):
     left child is smaller:
     child names are left and right
     """
-    def __init__(self, field,purity, left_values, right_values):
+
+    def __init__(self, field, purity, left_values, right_values):
         super().__init__(purity, field)
         self.left_values = left_values
         self.right_values = right_values
@@ -62,7 +61,7 @@ class CategoricalBinaryNode(InternalNode):
         right_child = df[df[self.field].isin(self.right_values)]
         self.children_data.update(left=left_child, right=right_child)
 
-    def get_child(self, column, value):
+    def get_child(self, value):
         if value in self.left_values:
             return self.children['left']
         return self.children['right']
@@ -76,5 +75,5 @@ class CategoricalMultiNode(InternalNode):
     def add_child_data(self, df):
         pass
 
-    def get_child(self, column, value):
+    def get_child(self, value):
         pass

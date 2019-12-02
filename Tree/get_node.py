@@ -3,7 +3,8 @@ import numpy as np
 
 from Tree.config import COUNT_COL_NAME, MEAN_RESPONSE_VALUE_SQUARED, MEAN_RESPONSE_VALUE
 
-column_order = [MEAN_RESPONSE_VALUE,MEAN_RESPONSE_VALUE_SQUARED,COUNT_COL_NAME]
+column_order = [MEAN_RESPONSE_VALUE, MEAN_RESPONSE_VALUE_SQUARED, COUNT_COL_NAME]
+
 
 def general_preprocess(df: pd.DataFrame, col_name: str, label_col_name: str) -> pd.DataFrame:
     df = df[df[col_name].notna()]
@@ -21,17 +22,19 @@ class GetNode:
     def preprocess_data_for_regression(self, df: pd.DataFrame, group_by: bool) -> pd.DataFrame:
         df = general_preprocess(df, self.col_name, self.label_col_name)
         df[MEAN_RESPONSE_VALUE_SQUARED] = np.square(df[MEAN_RESPONSE_VALUE])
-        if group_by:
-            return df.groupby(self.col_name).agg(
-                {MEAN_RESPONSE_VALUE: 'mean', MEAN_RESPONSE_VALUE_SQUARED: 'mean', COUNT_COL_NAME: 'sum'})
-        return df.set_index(self.col_name)[column_order]
+        # if group_by:
+        # TODO understand if groupby is avoidable
+        return df.groupby(self.col_name, observed=True).agg(
+            {MEAN_RESPONSE_VALUE: 'mean', MEAN_RESPONSE_VALUE_SQUARED: 'mean', COUNT_COL_NAME: 'sum'})
+        # return df.set_index(self.col_name)[column_order]
 
     def preprocess_data_for_classification(self, df: pd.DataFrame, group_by: bool) -> pd.DataFrame:
         df = general_preprocess(df, self.col_name, self.label_col_name)
-        if group_by:
-            return df.groupby(self.col_name).agg(
-                {MEAN_RESPONSE_VALUE: 'mean', COUNT_COL_NAME: 'sum'})
-        return df.set_index(self.col_name)[column_order]
+        # if group_by:
+        # TODO understand if groupby is avoidable
+        return df.groupby(self.col_name).agg(
+            {MEAN_RESPONSE_VALUE: 'mean', COUNT_COL_NAME: 'sum'})
+        # return df.set_index(self.col_name)[column_order]
 
     def create_node(self, split):
         # Todo change self.splitter.node to self.splitter.numeric node and categorical node
@@ -51,6 +54,9 @@ class GetNode:
         group_or_not = False if self.col_type == 'numeric' else True
         preprocessor = self.get_preprocessor()
         df = preprocessor(df, group_by=group_or_not)
+        if df.shape[0] == 1:
+            # it is a pure leaf, we can't split on this node
+            return None
         df.sort_values(by=[MEAN_RESPONSE_VALUE], inplace=True)
         # TODO in the case where we have multiple children for node we need to be gentle with self.splitter.get_split
         split = self.splitter.get_split(df)
