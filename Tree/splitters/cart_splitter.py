@@ -13,7 +13,7 @@ class CartRegressionSplitter(Splitter):
 
     @staticmethod
     def evaluate(mrv, mrv_square, counts):
-        left_sum, left_counts, left_sum_squares = 0, 0, 0
+        left_sum, left_counts, left_sum_squares = 0., 0., 0.
         split_index, best_impurity = None, np.inf
         total_sum, total_sum_squares, total_counts = np.sum(counts * mrv), np.sum(counts * mrv_square), np.sum(counts)
         for i in range(1, mrv.size):
@@ -49,7 +49,7 @@ class CartTwoClassClassificationSplitter(Splitter):
     @staticmethod
     def evaluate(mrv, counts):
         # we can look at left sum for example as number of succes in the left split
-        left_sum, left_counts = 0, 0, 0
+        left_sum, left_counts = 0., 0., 0.
         split_index, best_impurity = None, np.inf
         total_sum, total_counts = np.sum(counts * mrv), np.sum(counts)
         for i in range(1, mrv.size):
