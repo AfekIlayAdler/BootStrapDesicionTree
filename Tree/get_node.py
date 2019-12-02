@@ -3,6 +3,7 @@ import numpy as np
 
 from Tree.config import COUNT_COL_NAME, MEAN_RESPONSE_VALUE_SQUARED, MEAN_RESPONSE_VALUE
 
+column_order = [MEAN_RESPONSE_VALUE,MEAN_RESPONSE_VALUE_SQUARED,COUNT_COL_NAME]
 
 def general_preprocess(df: pd.DataFrame, col_name: str, label_col_name: str) -> pd.DataFrame:
     df = df[df[col_name].notna()]
@@ -21,16 +22,16 @@ class GetNode:
         df = general_preprocess(df, self.col_name, self.label_col_name)
         df[MEAN_RESPONSE_VALUE_SQUARED] = np.square(df[MEAN_RESPONSE_VALUE])
         if group_by:
-            df = df.groupby(self.col_name).agg(
+            return df.groupby(self.col_name).agg(
                 {MEAN_RESPONSE_VALUE: 'mean', MEAN_RESPONSE_VALUE_SQUARED: 'mean', COUNT_COL_NAME: 'sum'})
-        return df.set_index(self.col_name)
+        return df.set_index(self.col_name)[column_order]
 
     def preprocess_data_for_classification(self, df: pd.DataFrame, group_by: bool) -> pd.DataFrame:
         df = general_preprocess(df, self.col_name, self.label_col_name)
         if group_by:
             return df.groupby(self.col_name).agg(
                 {MEAN_RESPONSE_VALUE: 'mean', COUNT_COL_NAME: 'sum'})
-        return df.set_index(self.col_name)
+        return df.set_index(self.col_name)[column_order]
 
     def create_node(self, split):
         # Todo change self.splitter.node to self.splitter.numeric node and categorical node
@@ -39,7 +40,7 @@ class GetNode:
             return self.splitter.numeric_node(self.col_name, split.impurity, thr)
         else:
             left_values, right_values = split.values[:split.split_index], split.values[split.split_index:]
-            return self.splitter.categorical_node(split.impurity, self.col_name, left_values, right_values)
+            return self.splitter.categorical_node(self.col_name, split.impurity, left_values, right_values)
 
     def get_preprocessor(self):
         if self.splitter.type == 'regression':
