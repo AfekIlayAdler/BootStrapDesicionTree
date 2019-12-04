@@ -6,10 +6,8 @@ from Tree.splitters.splitter_abstract import Splitter, Split
 
 
 class CartRegressionSplitter(Splitter):
-    def __init__(self):
-        self.numeric_node = NumericBinaryNode
-        self.categorical_node = CategoricalBinaryNode
-        self.type = 'regression'
+    def __init__(self, min_samples_leaf):
+        super().__init__(NumericBinaryNode, CategoricalBinaryNode, 'regression', min_samples_leaf)
 
     @staticmethod
     def evaluate(mrv, mrv_square, counts):
@@ -41,15 +39,13 @@ class CartRegressionSplitter(Splitter):
 
 
 class CartTwoClassClassificationSplitter(Splitter):
-    def __init__(self):
-        self.numeric_node = NumericBinaryNode
-        self.categorical_node = CategoricalBinaryNode
-        self.type = 'classification'
+    def __init__(self, min_samples_leaf):
+        super().__init__(NumericBinaryNode, CategoricalBinaryNode, 'classification', min_samples_leaf)
 
     @staticmethod
     def evaluate(mrv, counts):
         # we can look at left sum for example as number of succes in the left split
-        left_sum, left_counts = 0., 0., 0.
+        left_sum, left_counts = 0., 0.
         split_index, best_impurity = None, np.inf
         total_sum, total_counts = np.sum(counts * mrv), np.sum(counts)
         for i in range(1, mrv.size):
