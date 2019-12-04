@@ -13,6 +13,10 @@ class InternalNode:
         self.purity = purity
         self.children_data = {}
         self.children = {}
+        self.depth = None
+
+    def add_depth(self, depth):
+        setattr(self, 'depth', depth)
 
     def add_child_data(self, df: pd.DataFrame):
         raise NotImplementedError
