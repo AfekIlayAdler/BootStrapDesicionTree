@@ -5,8 +5,6 @@ from Tree.node import NumericBinaryNode, CategoricalBinaryNode
 from Tree.splitters.splitter_abstract import Splitter, Split
 
 
-# Todo: handle cases where min_samples_leaf makes the method to return nothing
-
 class CartRegressionSplitter(Splitter):
     def __init__(self, min_samples_leaf):
         super().__init__(NumericBinaryNode, CategoricalBinaryNode, 'regression', min_samples_leaf)

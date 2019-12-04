@@ -57,7 +57,6 @@ class BaseTree:
         for child_name, child_data in children_data.items():
             child_node = self.get_node(child_data, node.depth + 1)
             node.add_child_nodes(child_name, child_node)
-            # TODO: Understand if both leaf and internal node are getting True
             if isinstance(child_node, InternalNode):
                 self.split(child_node)
 

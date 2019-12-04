@@ -58,7 +58,6 @@ class GetNode:
             # it is a pure leaf, we can't split on this node
             return None
         df.sort_values(by=[MEAN_RESPONSE_VALUE], inplace=True)
-        # TODO in the case where we have multiple children for node we need to be gentle with self.splitter.get_split
         split = self.splitter.get_split(df)
         if split.split_index is None:
             # no split that holds min_samples_leaf constraint
