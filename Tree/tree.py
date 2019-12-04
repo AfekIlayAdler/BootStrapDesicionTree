@@ -10,12 +10,12 @@ from Tree.utils import get_cols_dtypes, impurity_dict, get_col_type
 
 
 class BaseTree:
-    def __init__(self, splitter, label_col_name, thr, min_samples_split=2,max_depth = np.inf):
+    def __init__(self, splitter, label_col_name, min_impurity_decrease=0., min_samples_split=2, max_depth=np.inf):
         self.label_col_name = label_col_name
         self.splitter = splitter
         self.root = None
         self.column_dtypes = None
-        self.thr = thr
+        self.min_impurity_decrease = min_impurity_decrease
         self.impurity = impurity_dict.get(self.splitter.type)
         self.min_samples_split = min_samples_split
         self.max_depth = max_depth
@@ -45,8 +45,7 @@ class BaseTree:
             # all x values are the same
             return Leaf(df[self.label_col_name].mean(), "pure_node")
         # min impurity increase
-        # print(f"purity increse: {(impurity - best_node.purity)}")
-        if (impurity - best_node.purity) < self.thr:
+        if (impurity - best_node.purity) < self.min_impurity_decrease:
             return Leaf(df[self.label_col_name].mean(), "min_impurity_increase")
         best_node.add_child_data(df)
         best_node.add_depth(depth)
@@ -56,7 +55,7 @@ class BaseTree:
         children_data = node.children_data
         node.children_data = None
         for child_name, child_data in children_data.items():
-            child_node = self.get_node(child_data, node.depth+1)
+            child_node = self.get_node(child_data, node.depth + 1)
             node.add_child_nodes(child_name, child_node)
             # TODO: Understand if both leaf and internal node are getting True
             if isinstance(child_node, InternalNode):
@@ -78,8 +77,8 @@ class BaseTree:
 
 
 class CartRegressionTree(BaseTree):
-    def __init__(self, label_col_name, thr=0.01):
-        super().__init__(CartRegressionSplitter(), label_col_name, thr)
+    def __init__(self, label_col_name, min_samples_leaf=1):
+        super().__init__(CartRegressionSplitter(min_samples_leaf), label_col_name)
 
 
 if __name__ == '__main__':
