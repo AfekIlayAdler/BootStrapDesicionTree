@@ -6,11 +6,12 @@ import pandas as pd
 from Tree.get_node import GetNode
 from Tree.node import Leaf, InternalNode
 from Tree.splitters.cart_splitter import CartRegressionSplitter
+from Tree.tree_visualizer import TreeVisualizer
 from Tree.utils import get_cols_dtypes, impurity_dict, get_col_type
 
 
 class BaseTree:
-    def __init__(self, splitter, label_col_name, min_impurity_decrease=0., min_samples_split=2, max_depth=np.inf):
+    def __init__(self, splitter, label_col_name, max_depth, min_impurity_decrease=0., min_samples_split=2):
         self.label_col_name = label_col_name
         self.splitter = splitter
         self.root = None
@@ -76,14 +77,16 @@ class BaseTree:
 
 
 class CartRegressionTree(BaseTree):
-    def __init__(self, label_col_name, min_samples_leaf=1):
-        super().__init__(CartRegressionSplitter(min_samples_leaf), label_col_name)
+    def __init__(self, label_col_name, min_samples_leaf=1, max_depth=np.inf):
+        super().__init__(CartRegressionSplitter(min_samples_leaf), label_col_name, max_depth=max_depth)
 
 
 if __name__ == '__main__':
     input_path = Path.cwd().parent / "Datasets\house_prices_regrssion\house_pricing_moc_dataset.csv"
     df = pd.read_csv(input_path, dtype={'OverallCond': 'category', 'HouseStyle': 'category'})
-    tree = CartRegressionTree("SalePrice")
+    tree = CartRegressionTree("SalePrice", max_depth=4)
     tree.build(df)
-    test = {'LotArea': 8450, 'YearBuilt': 2003, 'OverallCond': 'medium', 'HouseStyle': '2Story'}
-    print(tree.predict(test))
+    # test = {'LotArea': 8450, 'YearBuilt': 2003, 'OverallCond': 'medium', 'HouseStyle': '2Story'}
+    # tree.predict(test)
+    tree_vis = TreeVisualizer()
+    tree_vis.plot(tree.root)
