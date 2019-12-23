@@ -2,6 +2,7 @@ import random
 
 from Tree.node import InternalNode
 import networkx as nx
+import matplotlib.pyplot as plt
 
 """
 the foolowing code was taken from: https://stackoverflow.com/questions/29586520/can-one-get-hierarchical-graphs-from-networkx-with-python-3
@@ -112,3 +113,5 @@ class TreeVisualizer:
             labeldict[node.name] = F"{node.name}_\n_{node.node_data.purity if isinstance(node.node_data,InternalNode) else 'leaf'}"
         pos = hierarchy_pos(g, 0)
         nx.draw(g, pos=pos, labels=labeldict,with_labels=True)
+        plt.show()
+
