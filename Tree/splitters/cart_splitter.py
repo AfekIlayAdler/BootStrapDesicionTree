@@ -30,10 +30,8 @@ class CartRegressionSplitter(Splitter):
         return best_impurity, split_index
 
     def get_split(self, df: pd.DataFrame):
-        """
-        :param df: data frame with columns [MEAN_RESPONSE_VALUE, MEAN_RESPONSE_VALUE_SQUARED, COUNT_COL_NAME]
-        and index which is the column values (splitting column)
-        """
+        """:param df: data frame with columns [MEAN_RESPONSE_VALUE, MEAN_RESPONSE_VALUE_SQUARED, COUNT_COL_NAME]
+        and index which is the column values (splitting column)"""
         data = df.values
         mrv, mrv_square, counts, index = data[:, 0], data[:, 1], data[:, 2], df.index.values
         best_impurity, split_index = self.evaluate(mrv, mrv_square, counts, self.min_samples_leaf)
@@ -65,10 +63,8 @@ class CartTwoClassClassificationSplitter(Splitter):
         return best_impurity, split_index
 
     def get_split(self, df: pd.DataFrame):
-        """
-        :param df: data frame with columns [MEAN_RESPONSE_VALUE, COUNT_COL_NAME]
-        and index which is the column values (splitting column)
-        """
+        """:param df: data frame with columns [MEAN_RESPONSE_VALUE, COUNT_COL_NAME]
+        and index which is the column values (splitting column) """
         data = df.values
         mrv, counts, index = data[:, 0], data[:, 1], df.index.values
         best_impurity, split_index = self.evaluate(mrv, counts, self.min_samples_leaf)
