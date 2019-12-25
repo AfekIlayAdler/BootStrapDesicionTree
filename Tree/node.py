@@ -57,8 +57,8 @@ class CategoricalBinaryNode(InternalNode):
 
     def __init__(self, field, purity, left_values, right_values):
         super().__init__(purity, field)
-        self.left_values = left_values
-        self.right_values = right_values
+        self.left_values = set(left_values)
+        self.right_values = set(right_values)
 
     def add_child_data(self, df):
         left_child = df[df[self.field].isin(self.left_values)]
