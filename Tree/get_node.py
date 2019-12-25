@@ -19,19 +19,15 @@ class GetNode:
         self.label_col_name = label_col_name
         self.splitter = splitter
 
-    def preprocess_data_for_regression(self, df: pd.DataFrame, group_by: bool) -> pd.DataFrame:
+    # TODO understand if groupby is avoidable
+    def preprocess_data_for_regression(self, df: pd.DataFrame) -> pd.DataFrame:
         df = general_preprocess(df, self.col_name, self.label_col_name)
         df[MEAN_RESPONSE_VALUE_SQUARED] = np.square(df[MEAN_RESPONSE_VALUE])
-        # if group_by:
-        # TODO understand if groupby is avoidable
         return df.groupby(self.col_name, observed=True).agg(
             {MEAN_RESPONSE_VALUE: 'mean', MEAN_RESPONSE_VALUE_SQUARED: 'mean', COUNT_COL_NAME: 'sum'})
-        # return df.set_index(self.col_name)[column_order]
 
-    def preprocess_data_for_classification(self, df: pd.DataFrame, group_by: bool) -> pd.DataFrame:
+    def preprocess_data_for_classification(self, df: pd.DataFrame) -> pd.DataFrame:
         df = general_preprocess(df, self.col_name, self.label_col_name)
-        # if group_by:
-        # TODO understand if groupby is avoidable
         return df.groupby(self.col_name).agg(
             {MEAN_RESPONSE_VALUE: 'mean', COUNT_COL_NAME: 'sum'})
         # return df.set_index(self.col_name)[column_order]
@@ -51,9 +47,8 @@ class GetNode:
         return self.preprocess_data_for_classification
 
     def get(self, df):
-        group_or_not = False if self.col_type == 'numeric' else True
         preprocessor = self.get_preprocessor()
-        df = preprocessor(df, group_by=group_or_not)
+        df = preprocessor(df)
         if df.shape[0] == 1:
             # it is a pure leaf, we can't split on this node
             return None
