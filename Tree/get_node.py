@@ -19,6 +19,12 @@ class GetNode:
         self.label_col_name = label_col_name
         self.splitter = splitter
 
+    def sort(self, df):
+        if self.col_type == 'categorical':
+            return df.sort_values(by=[MEAN_RESPONSE_VALUE])
+        # col_type = 'numeric'
+        return df.sort_index()
+
     # TODO understand if groupby is avoidable
     def preprocess_data_for_regression(self, df: pd.DataFrame) -> pd.DataFrame:
         df = general_preprocess(df, self.col_name, self.label_col_name)
@@ -30,7 +36,6 @@ class GetNode:
         df = general_preprocess(df, self.col_name, self.label_col_name)
         return df.groupby(self.col_name).agg(
             {MEAN_RESPONSE_VALUE: 'mean', COUNT_COL_NAME: 'sum'})
-        # return df.set_index(self.col_name)[column_order]
 
     def create_node(self, split):
         # Todo change self.splitter.node to self.splitter.numeric node and categorical node
@@ -52,7 +57,7 @@ class GetNode:
         if df.shape[0] == 1:
             # it is a pure leaf, we can't split on this node
             return None
-        df.sort_values(by=[MEAN_RESPONSE_VALUE], inplace=True)
+        df = self.sort(df)
         split = self.splitter.get_split(df)
         if split.split_index is None:
             # no split that holds min_samples_leaf constraint
