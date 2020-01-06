@@ -110,7 +110,9 @@ class TreeVisualizer:
         # TODO: add more data to node rather than it's name
         labeldict = {}
         for node in self.nodes:
-            labeldict[node.name] = F"{node.name}_\n_{node.node_data.purity if isinstance(node.node_data,InternalNode) else 'leaf'}"
+            field = node.node_data.field if isinstance(node.node_data,InternalNode) else 'leaf'
+            purity = node.node_data.purity if isinstance(node.node_data,InternalNode) else ''
+            labeldict[node.name] = F"{node.name}_{field}\n{purity}"
         pos = hierarchy_pos(g, 0)
         nx.draw(g, pos=pos, labels=labeldict,with_labels=True)
         plt.show()
