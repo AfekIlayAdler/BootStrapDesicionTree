@@ -36,10 +36,10 @@ class BaseTree:
         for col, col_type in self.column_dtypes.items():
             col_type = get_col_type(col_type)
             node_getter = GetNode(self.splitter, col, self.label_col_name, col_type)
-            col_best_node = node_getter.get(df[[col, self.label_col_name]])
+            col_best_node, col_purity_score = node_getter.get(df[[col, self.label_col_name]])
             if col_best_node is None:
                 continue
-            if col_best_node.purity < best_node_score:
+            if col_purity_score < best_node_score:
                 best_node = col_best_node
                 best_node_score = col_best_node.purity
         if best_node is None:

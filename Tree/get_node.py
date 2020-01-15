@@ -1,8 +1,12 @@
+from typing import Optional
+
 import pandas as pd
 import numpy as np
 
 from Tree.config import COUNT_COL_NAME, MEAN_RESPONSE_VALUE_SQUARED, MEAN_RESPONSE_VALUE
 from sklearn.model_selection import KFold
+
+from Tree.node import InternalNode
 
 column_order = [MEAN_RESPONSE_VALUE, MEAN_RESPONSE_VALUE_SQUARED, COUNT_COL_NAME]
 
@@ -20,13 +24,13 @@ class GetNode:
         self.label_col_name = label_col_name
         self.splitter = splitter
 
-    def sort(self, df):
+    def sort(self, df) -> pd.DataFrame:
         if self.col_type == 'categorical':
             return df.sort_values(by=[MEAN_RESPONSE_VALUE])
         # col_type = 'numeric'
         return df.sort_index()
 
-    def create_node(self, split):
+    def create_node(self, split) -> InternalNode:
         if self.col_type == 'numeric':
             thr = (split.values[split.split_index - 1] + split.values[split.split_index]) / 2
             return self.splitter.numeric_node(self.col_name, split.impurity, thr)
@@ -44,7 +48,7 @@ class GetNode:
             return df.groupby(self.col_name).agg(
                 {MEAN_RESPONSE_VALUE: 'mean', COUNT_COL_NAME: 'sum'})
 
-    def __get(self, df):
+    def __get(self, df) -> Optional[InternalNode]:
         df = self.preprocess(df)
         if df.shape[0] == 1:
             # it is a pure leaf, we can't split on this node
@@ -56,8 +60,11 @@ class GetNode:
             return None
         return self.create_node(split)
 
-    def get(self, df):
-        return self.__get(df)
+    def get(self, df) -> tuple:
+        node = self.__get(df)
+        if not node:
+            return None, None
+        return node, node.purity
 
 
 class KFoldGetNode(GetNode):
