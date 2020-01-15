@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 
 from Tree.config import COUNT_COL_NAME, MEAN_RESPONSE_VALUE_SQUARED, MEAN_RESPONSE_VALUE
+from sklearn.model_selection import KFold
 
 column_order = [MEAN_RESPONSE_VALUE, MEAN_RESPONSE_VALUE_SQUARED, COUNT_COL_NAME]
 
@@ -25,20 +26,7 @@ class GetNode:
         # col_type = 'numeric'
         return df.sort_index()
 
-    # TODO understand if groupby is avoidable
-    def preprocess_data_for_regression(self, df: pd.DataFrame) -> pd.DataFrame:
-        df = general_preprocess(df, self.col_name, self.label_col_name)
-        df[MEAN_RESPONSE_VALUE_SQUARED] = np.square(df[MEAN_RESPONSE_VALUE])
-        return df.groupby(self.col_name, observed=True).agg(
-            {MEAN_RESPONSE_VALUE: 'mean', MEAN_RESPONSE_VALUE_SQUARED: 'mean', COUNT_COL_NAME: 'sum'})
-
-    def preprocess_data_for_classification(self, df: pd.DataFrame) -> pd.DataFrame:
-        df = general_preprocess(df, self.col_name, self.label_col_name)
-        return df.groupby(self.col_name).agg(
-            {MEAN_RESPONSE_VALUE: 'mean', COUNT_COL_NAME: 'sum'})
-
     def create_node(self, split):
-        # Todo change self.splitter.node to self.splitter.numeric node and categorical node
         if self.col_type == 'numeric':
             thr = (split.values[split.split_index - 1] + split.values[split.split_index]) / 2
             return self.splitter.numeric_node(self.col_name, split.impurity, thr)
@@ -46,14 +34,18 @@ class GetNode:
             left_values, right_values = split.values[:split.split_index], split.values[split.split_index:]
             return self.splitter.categorical_node(self.col_name, split.impurity, left_values, right_values)
 
-    def get_preprocessor(self):
+    def preprocess(self, df: pd.DataFrame) -> pd.DataFrame:
+        df = general_preprocess(df, self.col_name, self.label_col_name)
         if self.splitter.type == 'regression':
-            return self.preprocess_data_for_regression
-        return self.preprocess_data_for_classification
+            df[MEAN_RESPONSE_VALUE_SQUARED] = np.square(df[MEAN_RESPONSE_VALUE])
+            return df.groupby(self.col_name, observed=True).agg(
+                {MEAN_RESPONSE_VALUE: 'mean', MEAN_RESPONSE_VALUE_SQUARED: 'mean', COUNT_COL_NAME: 'sum'})
+        else:
+            return df.groupby(self.col_name).agg(
+                {MEAN_RESPONSE_VALUE: 'mean', COUNT_COL_NAME: 'sum'})
 
-    def get(self, df):
-        preprocessor = self.get_preprocessor()
-        df = preprocessor(df)
+    def __get(self, df):
+        df = self.preprocess(df)
         if df.shape[0] == 1:
             # it is a pure leaf, we can't split on this node
             return None
@@ -63,3 +55,28 @@ class GetNode:
             # no split that holds min_samples_leaf constraint
             return None
         return self.create_node(split)
+
+    def get(self, df):
+        return self.__get(df)
+
+
+class KFoldGetNode(GetNode):
+    def __init__(self, splitter, col_name, label_col_name, col_type, k_folds=5):
+        super().__init__(splitter, col_name, label_col_name, col_type)
+        self.k_folds = k_folds
+
+    def calculate_fold_error(self, node, new_samples):
+        return None
+
+    def get(self, df):
+        best_node = self.__get(df)
+        # now we will calculate a real estimate for this impurity using kfold
+        error = 0
+        kf = KFold(n_splits=self.k_folds)
+        for train_index, validation_index in kf.split(df):
+            train, validation = df[train_index], df[validation_index]
+            node = self.__get(train)
+            error += self.calculate_fold_error(node, train, validation)
+        mean_error = error / self.k_folds
+        setattr(best_node, 'purity', mean_error)
+        return best_node
