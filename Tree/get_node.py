@@ -1,11 +1,9 @@
 from typing import Optional
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 from Tree.config import COUNT_COL_NAME, MEAN_RESPONSE_VALUE_SQUARED, MEAN_RESPONSE_VALUE
-from sklearn.model_selection import KFold
-
 from Tree.node import InternalNode
 
 column_order = [MEAN_RESPONSE_VALUE, MEAN_RESPONSE_VALUE_SQUARED, COUNT_COL_NAME]
@@ -61,29 +59,11 @@ class GetNode:
         return self.create_node(split)
 
     def get(self, df) -> tuple:
+        # simple case, no cross validation score so the validation score is the purity score
         node = self.__get(df)
         if not node:
             return None, None
         return node, node.purity
 
 
-class KFoldGetNode(GetNode):
-    def __init__(self, splitter, col_name, label_col_name, col_type, k_folds=5):
-        super().__init__(splitter, col_name, label_col_name, col_type)
-        self.k_folds = k_folds
 
-    def calculate_fold_error(self, node, new_samples):
-        return None
-
-    def get(self, df):
-        best_node = self.__get(df)
-        # now we will calculate a real estimate for this impurity using kfold
-        error = 0
-        kf = KFold(n_splits=self.k_folds)
-        for train_index, validation_index in kf.split(df):
-            train, validation = df[train_index], df[validation_index]
-            node = self.__get(train)
-            error += self.calculate_fold_error(node, train, validation)
-        mean_error = error / self.k_folds
-        setattr(best_node, 'purity', mean_error)
-        return best_node
