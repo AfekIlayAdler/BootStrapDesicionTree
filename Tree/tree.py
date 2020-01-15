@@ -25,6 +25,7 @@ class BaseTree:
         return self.impurity(y)
 
     def get_node(self, df: pd.DataFrame, depth: int) -> [InternalNode, Leaf]:
+        # TODO: create a funciton create_leaf
         # min_samples_split
         if df.shape[0] <= self.min_samples_split:
             return Leaf(df[self.label_col_name].mean(), "min_samples_split")
