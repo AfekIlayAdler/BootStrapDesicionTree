@@ -1,7 +1,7 @@
 from sklearn.model_selection import KFold
 
 from Tree.get_node import GetNode
-from Tree.node import InternalNode, CategoricalBinaryNode, NumericBinaryNode
+from Tree.node import CategoricalBinaryNode, NumericBinaryNode
 
 import numpy as np
 import pandas as pd
