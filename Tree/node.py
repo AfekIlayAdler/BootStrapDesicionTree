@@ -10,13 +10,14 @@ class Leaf:
 
 
 class InternalNode:
-    def __init__(self, n_examples, purity, field):
+    def __init__(self, n_examples, split_purity, field):
         self.n_examples = n_examples
-        self.purity = purity
+        self.split_purity = split_purity
         self.field = field
         self.children_data = {}
         self.children = {}
         self.depth = None
+        self.purity = None
 
     def add_depth(self, depth):
         setattr(self, 'depth', depth)
@@ -37,8 +38,8 @@ class NumericBinaryNode(InternalNode):
     child names are left and right
     """
 
-    def __init__(self, n_examples, purity, field, splitting_point: float):
-        super().__init__(n_examples, purity, field)
+    def __init__(self, n_examples, split_purity, field, splitting_point: float):
+        super().__init__(n_examples, split_purity, field)
         self.thr = splitting_point
 
     def add_child_data(self, df):
@@ -58,8 +59,8 @@ class CategoricalBinaryNode(InternalNode):
     child names are left and right
     """
 
-    def __init__(self, n_examples, purity, field, left_values, right_values):
-        super().__init__(n_examples, purity, field)
+    def __init__(self, n_examples, split_purity, field, left_values, right_values):
+        super().__init__(n_examples, split_purity, field)
         self.left_values = set(left_values)
         self.right_values = set(right_values)
 
