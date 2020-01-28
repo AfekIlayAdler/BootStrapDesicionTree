@@ -25,14 +25,16 @@ class BaseTree:
         return self.impurity(y)
 
     def get_node(self, df: pd.DataFrame, depth: int) -> [InternalNode, Leaf]:
-        # TODO: create a funciton create_leaf
         # min_samples_split
-        if df.shape[0] <= self.min_samples_split:
-            return Leaf(df[self.label_col_name].mean(), "min_samples_split")
+        impurity = self.calculate_impurity(df[self.label_col_name])
+        # TODO : if impurity = 0: return leaf
+        n_samples = df.shape[0]
+        leaf_prediction = df[self.label_col_name].mean()
+        if n_samples <= self.min_samples_split:
+            return Leaf(leaf_prediction, "min_samples_split", n_samples, impurity)
         # max_depth
         if depth == self.max_depth:
-            return Leaf(df[self.label_col_name].mean(), "max_depth")
-        impurity = self.calculate_impurity(df[self.label_col_name])
+            return Leaf(leaf_prediction, "max_depth", n_samples, impurity)
         best_node, best_node_score = None, np.inf
         for col, col_type in self.column_dtypes.items():
             col_type = get_col_type(col_type)
@@ -45,10 +47,10 @@ class BaseTree:
                 best_node_score = col_best_node.purity
         if best_node is None:
             # all x values are the same
-            return Leaf(df[self.label_col_name].mean(), "pure_node")
+            return Leaf(leaf_prediction, "pure_node", n_samples, impurity)
         # min impurity increase
         if (impurity - best_node.purity) < self.min_impurity_decrease:
-            return Leaf(df[self.label_col_name].mean(), "min_impurity_increase")
+            return Leaf(leaf_prediction, "min_impurity_increase", n_samples, impurity)
         best_node.add_child_data(df)
         best_node.add_depth(depth)
         return best_node
@@ -94,7 +96,7 @@ if __name__ == '__main__':
     if CHECK_TYPE_REGRESSION:
         tree = CartRegressionTree("SalePrice", max_depth=4)
     else:
-        df['SalePrice'] = np.random.randint(0,2,df.shape[0])
+        df['SalePrice'] = np.random.randint(0, 2, df.shape[0])
         tree = CartClassificationTree("SalePrice", max_depth=4)
     tree.build(df)
     # test = {'LotArea': 8450, 'YearBuilt': 2003, 'OverallCond': 'medium', 'HouseStyle': '2Story'}
