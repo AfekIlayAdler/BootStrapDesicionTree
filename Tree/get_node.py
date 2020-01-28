@@ -28,13 +28,13 @@ class GetNode:
         # col_type = 'numeric'
         return df.sort_index()
 
-    def create_node(self, split) -> InternalNode:
+    def create_node(self, split, n_examples: int) -> InternalNode:
         if self.col_type == 'numeric':
             thr = (split.values[split.split_index - 1] + split.values[split.split_index]) / 2
-            return self.splitter.numeric_node(self.col_name, split.impurity, thr)
+            return self.splitter.numeric_node(n_examples, split.impurity, self.col_name, thr)
         else:
             left_values, right_values = split.values[:split.split_index], split.values[split.split_index:]
-            return self.splitter.categorical_node(self.col_name, split.impurity, left_values, right_values)
+            return self.splitter.categorical_node(n_examples, split.impurity, self.col_name, left_values, right_values)
 
     def preprocess(self, df: pd.DataFrame) -> pd.DataFrame:
         df = general_preprocess(df, self.col_name, self.label_col_name)
@@ -56,7 +56,7 @@ class GetNode:
         if split.split_index is None:
             # no split that holds min_samples_leaf constraint
             return None
-        return self.create_node(split)
+        return self.create_node(split, n_examples=df.shape[0])
 
     def get(self, df) -> tuple:
         # simple case, no cross validation score so the validation score is the purity score
@@ -64,6 +64,3 @@ class GetNode:
         if not node:
             return None, None
         return node, node.purity
-
-
-
