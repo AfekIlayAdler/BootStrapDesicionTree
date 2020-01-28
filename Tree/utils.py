@@ -16,7 +16,7 @@ def get_col_type(col_type):
 
 
 def regression_impurity(y: pd.Series):
-    return np.sum(np.square(y) - np.mean(y))
+    return np.sum(np.square(y - np.mean(y)))
 
 
 def classification_impurity(y: pd.Series):
