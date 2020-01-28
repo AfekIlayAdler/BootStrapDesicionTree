@@ -4,6 +4,8 @@ from Tree.node import InternalNode
 import networkx as nx
 import matplotlib.pyplot as plt
 
+from numpy import round
+
 """
 the foolowing code was taken from: https://stackoverflow.com/questions/29586520/can-one-get-hierarchical-graphs-from-networkx-with-python-3
 much thanks to the author
@@ -86,6 +88,7 @@ class TreeVisualizer:
         self.edges = []
 
     def number_nodes(self, root):
+        """number the bodes with bfs algorithm"""
         root = NodeBfsWrapper(root, 0)
         queue = [[root]]
         counter = 0
@@ -111,8 +114,8 @@ class TreeVisualizer:
         labeldict = {}
         for node in self.nodes:
             field = node.node_data.field if isinstance(node.node_data,InternalNode) else 'leaf'
-            purity = node.node_data.purity if isinstance(node.node_data,InternalNode) else ''
-            labeldict[node.name] = F"{node.name}_{field}\n{purity}"
+            purity = round(node.node_data.purity,2) #  if isinstance(node.node_data,InternalNode) else ''
+            labeldict[node.name] = F"{node.name}_{field}\n{purity} \n{node.node_data.n_examples}"
         pos = hierarchy_pos(g, 0)
         nx.draw(g, pos=pos, labels=labeldict,with_labels=True)
         plt.show()
