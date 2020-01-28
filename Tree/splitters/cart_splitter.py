@@ -44,7 +44,7 @@ class CartTwoClassClassificationSplitter(Splitter):
 
     @staticmethod
     def evaluate(mrv, counts, min_samples_leaf):
-        # we can look at left sum for example as number of succes in the left split
+        # we can look at left sum for example as number of success in the left split
         left_sum, left_counts = 0., 0.
         split_index, best_impurity = None, np.inf
         total_sum, total_counts = np.sum(counts * mrv), np.sum(counts)
