@@ -6,6 +6,7 @@ import pandas as pd
 from Tree.get_node import GetNode
 from Tree.node import Leaf, InternalNode
 from Tree.splitters.cart_splitter import CartRegressionSplitter, CartTwoClassClassificationSplitter
+from Tree.tree_feature_importance import weighted_variance_reduction_feature_importance
 from Tree.tree_visualizer import TreeVisualizer
 from Tree.utils import get_cols_dtypes, impurity_dict, get_col_type
 
@@ -24,12 +25,14 @@ class BaseTree:
     def calculate_impurity(self, y) -> float:
         return self.impurity(y)
 
-    def get_node(self, df: pd.DataFrame, depth: int) -> [InternalNode, Leaf]:
+    def get_node(self, data: pd.DataFrame, depth: int) -> [InternalNode, Leaf]:
         # min_samples_split
-        impurity = self.calculate_impurity(df[self.label_col_name])
+        impurity = self.calculate_impurity(data[self.label_col_name])
         # TODO : if impurity = 0: return leaf
-        n_samples = df.shape[0]
-        leaf_prediction = df[self.label_col_name].mean()
+        n_samples = data.shape[0]
+        leaf_prediction = data[self.label_col_name].mean()
+        if impurity == 0:
+            return Leaf(leaf_prediction, "pure_leaf", n_samples, impurity)
         if n_samples <= self.min_samples_split:
             return Leaf(leaf_prediction, "min_samples_split", n_samples, impurity)
         # max_depth
@@ -39,19 +42,21 @@ class BaseTree:
         for col, col_type in self.column_dtypes.items():
             col_type = get_col_type(col_type)
             node_getter = GetNode(self.splitter, col, self.label_col_name, col_type)
-            col_best_node, col_purity_score = node_getter.get(df[[col, self.label_col_name]])
+            col_best_node, col_split_purity_score = node_getter.get(data[[col, self.label_col_name]])
             if col_best_node is None:
                 continue
-            if col_purity_score < best_node_score:
+            if col_split_purity_score < best_node_score:
                 best_node = col_best_node
-                best_node_score = col_best_node.purity
+                best_node_score = col_split_purity_score
         if best_node is None:
             # all x values are the same
             return Leaf(leaf_prediction, "pure_node", n_samples, impurity)
         # min impurity increase
-        if (impurity - best_node.purity) < self.min_impurity_decrease:
+        print(impurity, best_node_score)
+        if (impurity - best_node_score) < self.min_impurity_decrease:
             return Leaf(leaf_prediction, "min_impurity_increase", n_samples, impurity)
-        best_node.add_child_data(df)
+        best_node.purity = impurity
+        best_node.add_child_data(data)
         best_node.add_depth(depth)
         return best_node
 
@@ -90,10 +95,13 @@ class CartClassificationTree(BaseTree):
 
 
 if __name__ == '__main__':
-    CHECK_TYPE_REGRESSION = False
+    # TODO : chech way feature importance is negative
+    CHECK_TYPE_REGRESSION = True
+    np.random.seed(3)
     input_path = Path.cwd().parent / "Datasets\house_prices_regrssion\house_pricing_moc_dataset.csv"
     df = pd.read_csv(input_path, dtype={'OverallCond': 'category', 'HouseStyle': 'category'})
     if CHECK_TYPE_REGRESSION:
+        df['SalePrice'] /= 10000
         tree = CartRegressionTree("SalePrice", max_depth=4)
     else:
         df['SalePrice'] = np.random.randint(0, 2, df.shape[0])
@@ -103,3 +111,5 @@ if __name__ == '__main__':
     # tree.predict(test)
     tree_vis = TreeVisualizer()
     tree_vis.plot(tree.root)
+    fi = weighted_variance_reduction_feature_importance(tree)
+    print(fi)
