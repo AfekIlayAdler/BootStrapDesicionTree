@@ -14,7 +14,7 @@ class Splitter:
 
 
 class Split:
-    def __init__(self, values: array, split_index: int, impurity: float):
-        self.impurity = impurity
+    def __init__(self, values: array, split_index: int, split_impurity: float):
+        self.impurity = split_impurity
         self.split_index = split_index
         self.values = values
