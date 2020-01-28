@@ -2,15 +2,18 @@ import pandas as pd
 
 
 class Leaf:
-    def __init__(self, prediction: float, stopping_criteria: str):
+    def __init__(self, prediction: float, stopping_criteria: str, n_examples: str, purity: float):
         self.prediction = prediction
         self.stopping_criteria = stopping_criteria
+        self.n_examples = n_examples
+        self.purity = purity
 
 
 class InternalNode:
-    def __init__(self, purity, field):
-        self.field = field
+    def __init__(self, n_examples, purity, field):
+        self.n_examples = n_examples
         self.purity = purity
+        self.field = field
         self.children_data = {}
         self.children = {}
         self.depth = None
@@ -34,8 +37,8 @@ class NumericBinaryNode(InternalNode):
     child names are left and right
     """
 
-    def __init__(self, field, purity, splitting_point: float):
-        super().__init__(purity, field)
+    def __init__(self, n_examples, purity, field, splitting_point: float):
+        super().__init__(n_examples, purity, field)
         self.thr = splitting_point
 
     def add_child_data(self, df):
@@ -55,8 +58,8 @@ class CategoricalBinaryNode(InternalNode):
     child names are left and right
     """
 
-    def __init__(self, field, purity, left_values, right_values):
-        super().__init__(purity, field)
+    def __init__(self, n_examples, purity, field, left_values, right_values):
+        super().__init__(n_examples, purity, field)
         self.left_values = set(left_values)
         self.right_values = set(right_values)
 
@@ -71,13 +74,3 @@ class CategoricalBinaryNode(InternalNode):
         return self.children['right']
 
 
-class CategoricalMultiNode(InternalNode):
-
-    def __init__(self, purity, field):
-        super().__init__(purity, field)
-
-    def add_child_data(self, df):
-        pass
-
-    def get_child(self, value):
-        pass
