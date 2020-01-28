@@ -47,6 +47,7 @@ class GetNode:
                 {MEAN_RESPONSE_VALUE: 'mean', COUNT_COL_NAME: 'sum'})
 
     def __get(self, df) -> Optional[InternalNode]:
+        n_examples = df.shape[0] # TODO: check if it is indeed the right place
         df = self.preprocess(df)
         if df.shape[0] == 1:
             # it is a pure leaf, we can't split on this node
@@ -56,11 +57,11 @@ class GetNode:
         if split.split_index is None:
             # no split that holds min_samples_leaf constraint
             return None
-        return self.create_node(split, n_examples=df.shape[0])
+        return self.create_node(split, n_examples=n_examples)
 
     def get(self, df) -> tuple:
         # simple case, no cross validation score so the validation score is the purity score
         node = self.__get(df)
         if not node:
             return None, None
-        return node, node.purity
+        return node, node.split_purity
