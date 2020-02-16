@@ -5,9 +5,8 @@ def weighted_variance_reduction_feature_importance(tree):
     # TODO: chech if bark
     queue = [[tree.root]]
     feature_importance = {feature: 0 for feature in tree.column_dtypes.keys()}
-    counter = 0
+    tree_depth = 0
     while queue:
-        print(counter)
         level_nodes = queue.pop(0)
         next_level_nodes = []
         for node in level_nodes:
@@ -23,6 +22,6 @@ def weighted_variance_reduction_feature_importance(tree):
             feature_importance[node.field] += node.n_examples*node.purity - children_nodes_weighted_purity
         if next_level_nodes:
             queue.append(next_level_nodes)
-        counter += 1
+        tree_depth += 1
     feature_importance = {i: v / tree.root.n_examples for i, v in feature_importance.items()}
     return feature_importance
