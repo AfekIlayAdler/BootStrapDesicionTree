@@ -46,7 +46,7 @@ class GetNode:
             return df.groupby(self.col_name).agg(
                 {MEAN_RESPONSE_VALUE: 'mean', COUNT_COL_NAME: 'sum'})
 
-    def __get(self, df) -> Optional[InternalNode]:
+    def _get(self, df) -> Optional[InternalNode]:
         n_examples = df.shape[0] # TODO: check if it is indeed the right place
         df = self.preprocess(df)
         if df.shape[0] == 1:
@@ -61,7 +61,7 @@ class GetNode:
 
     def get(self, df) -> tuple:
         # simple case, no cross validation score so the validation score is the purity score
-        node = self.__get(df)
+        node = self._get(df)
         if not node:
             return None, None
         return node, node.split_purity
