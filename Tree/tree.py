@@ -1,13 +1,9 @@
-from pathlib import Path
-
 import numpy as np
 import pandas as pd
 
 from Tree.get_node import GetNode
 from Tree.node import Leaf, InternalNode
 from Tree.splitters.cart_splitter import CartRegressionSplitter, CartTwoClassClassificationSplitter
-from Tree.tree_feature_importance import weighted_variance_reduction_feature_importance
-from Tree.tree_visualizer import TreeVisualizer
 from Tree.utils import get_cols_dtypes, impurity_dict, get_col_type
 
 
@@ -28,7 +24,6 @@ class BaseTree:
     def get_node(self, data: pd.DataFrame, depth: int) -> [InternalNode, Leaf]:
         # min_samples_split
         impurity = self.calculate_impurity(data[self.label_col_name])
-        # TODO : if impurity = 0: return leaf
         n_samples = data.shape[0]
         leaf_prediction = data[self.label_col_name].mean()
         if impurity == 0:
@@ -86,11 +81,15 @@ class BaseTree:
 
 class CartRegressionTree(BaseTree):
     def __init__(self, label_col_name, min_samples_leaf=1, max_depth=np.inf):
-        super().__init__(CartRegressionSplitter(min_samples_leaf), label_col_name, max_depth=max_depth)
+        super().__init__(CartRegressionSplitter(min_samples_leaf),
+                         label_col_name,
+                         max_depth=max_depth)
 
 
 class CartClassificationTree(BaseTree):
     def __init__(self, label_col_name, min_samples_leaf=1, max_depth=np.inf):
-        super().__init__(CartTwoClassClassificationSplitter(min_samples_leaf), label_col_name, max_depth=max_depth)
+        super().__init__(CartTwoClassClassificationSplitter(min_samples_leaf),
+                         label_col_name,
+                         max_depth=max_depth)
 
 
