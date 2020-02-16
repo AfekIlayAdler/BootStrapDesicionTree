@@ -1,22 +1,24 @@
 import numpy as np
 import pandas as pd
-
 from Tree.get_node import GetNode
+from Tree.kfold_get_node import KFoldGetNode
 from Tree.node import Leaf, InternalNode
 from Tree.splitters.cart_splitter import CartRegressionSplitter, CartTwoClassClassificationSplitter
 from Tree.utils import get_cols_dtypes, impurity_dict, get_col_type
 
 
 class BaseTree:
-    def __init__(self, splitter, label_col_name, max_depth, min_impurity_decrease=0., min_samples_split=2):
-        self.label_col_name = label_col_name
+    def __init__(self, node_getter, splitter, label_col_name,
+                 max_depth, min_impurity_decrease=0., min_samples_split=2):
+        self.node_getter = node_getter
         self.splitter = splitter
-        self.root = None
-        self.column_dtypes = None
+        self.label_col_name = label_col_name
         self.min_impurity_decrease = min_impurity_decrease
         self.impurity = impurity_dict.get(self.splitter.type)
         self.min_samples_split = min_samples_split
         self.max_depth = max_depth
+        self.root = None
+        self.column_dtypes = None
 
     def calculate_impurity(self, y) -> float:
         return self.impurity(y)
@@ -36,7 +38,7 @@ class BaseTree:
         best_node, best_node_score = None, np.inf
         for col, col_type in self.column_dtypes.items():
             col_type = get_col_type(col_type)
-            node_getter = GetNode(self.splitter, col, self.label_col_name, col_type)
+            node_getter = self.node_getter(self.splitter, col, self.label_col_name, col_type)
             col_best_node, col_split_purity_score = node_getter.get(data[[col, self.label_col_name]])
             if col_best_node is None:
                 continue
@@ -47,7 +49,7 @@ class BaseTree:
             # all x values are the same
             return Leaf(leaf_prediction, "pure_node", n_samples, impurity)
         # min impurity increase
-        print(impurity, best_node_score)
+        # print(impurity, best_node_score)
         if (impurity - best_node_score) < self.min_impurity_decrease:
             return Leaf(leaf_prediction, "min_impurity_increase", n_samples, impurity)
         best_node.purity = impurity
@@ -81,15 +83,23 @@ class BaseTree:
 
 class CartRegressionTree(BaseTree):
     def __init__(self, label_col_name, min_samples_leaf=1, max_depth=np.inf):
-        super().__init__(CartRegressionSplitter(min_samples_leaf),
-                         label_col_name,
+        super().__init__(node_getter=GetNode,
+                         splitter=CartRegressionSplitter(min_samples_leaf),
+                         label_col_name=label_col_name,
                          max_depth=max_depth)
 
 
 class CartClassificationTree(BaseTree):
     def __init__(self, label_col_name, min_samples_leaf=1, max_depth=np.inf):
-        super().__init__(CartTwoClassClassificationSplitter(min_samples_leaf),
-                         label_col_name,
+        super().__init__(node_getter=GetNode,
+                         splitter=CartTwoClassClassificationSplitter(min_samples_leaf),
+                         label_col_name=label_col_name,
                          max_depth=max_depth)
 
 
+class CartRegressionTreeKFold(BaseTree):
+    def __init__(self, label_col_name, min_samples_leaf=1, max_depth=np.inf):
+        super().__init__(node_getter=KFoldGetNode,
+                         splitter=CartRegressionSplitter(min_samples_leaf),
+                         label_col_name=label_col_name,
+                         max_depth=max_depth)

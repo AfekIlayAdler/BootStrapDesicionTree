@@ -2,7 +2,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from Tree.tree import CartRegressionTree, CartClassificationTree
+from Tree.tree import CartRegressionTree, CartClassificationTree, CartRegressionTreeKFold
 from Tree.tree_feature_importance import weighted_variance_reduction_feature_importance
 from Tree.tree_visualizer import TreeVisualizer
 
@@ -43,8 +43,9 @@ if __name__ == '__main__':
               'y': 'float64'}
     df = pd.read_csv(input_path, dtype=dtypes)
     tree = CartRegressionTree("y", max_depth=4)
+    # tree = CartRegressionTreeKFold("y", max_depth=4)
     tree.build(df)
     tree_vis = TreeVisualizer()
     tree_vis.plot(tree.root)
     fi = weighted_variance_reduction_feature_importance(tree)
-    print(fi)
+    print(pd.Series(fi))
