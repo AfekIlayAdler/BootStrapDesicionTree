@@ -42,8 +42,8 @@ if __name__ == '__main__':
               'LSTAT': 'float64',
               'y': 'float64'}
     df = pd.read_csv(input_path, dtype=dtypes)
-    tree = CartRegressionTree("y", max_depth=4)
-    # tree = CartRegressionTreeKFold("y", max_depth=4)
+    # tree = CartRegressionTree("y", max_depth=4)
+    tree = CartRegressionTreeKFold("y", max_depth=4)
     tree.build(df)
     tree_vis = TreeVisualizer()
     tree_vis.plot(tree.root)
