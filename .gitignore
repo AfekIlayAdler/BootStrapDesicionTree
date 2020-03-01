@@ -3,3 +3,8 @@
 *.csv
 /Datasets/house_prices_regrssion/.ipynb_checkpoints/prepare_data_for_tree_debugging-checkpoint.ipynb
 /Datasets/house_prices_regrssion/data/data_description.txt
+/Datasets/boston_house_prices/.ipynb_checkpoints/boston_house_prices_data_preparation-checkpoint.ipynb
+/experiments/.ipynb_checkpoints/Interaction-checkpoint.ipynb
+/experiments/Interaction.ipynb
+/Tree/Verify/.ipynb_checkpoints/Untitled-checkpoint.ipynb
+/Tree/Verify/Untitled.ipynb
