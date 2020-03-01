@@ -1,3 +1,5 @@
+from typing import List, Dict
+
 import numpy as np
 import pandas as pd
 from Tree.get_node import GetNode
@@ -73,12 +75,15 @@ class BaseTree:
             self.split(root)
         self.root = root
 
-    def predict(self, row):
-        node = self.root
-        while isinstance(node, InternalNode):
-            value = row[node.field]
-            node = node.get_child(value)
-        return node.prediction
+    def predict(self, records: List[Dict]):
+        results = np.zeros(len(records))
+        for i, row in enumerate(records):
+            node = self.root
+            while isinstance(node, InternalNode):
+                value = row[node.field]
+                node = node.get_child(value)
+            results[i] = node.prediction
+        return results
 
 
 class CartRegressionTree(BaseTree):
