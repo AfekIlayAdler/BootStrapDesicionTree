@@ -3,16 +3,16 @@ from Tree.tree import CartRegressionTree
 from numpy import mean, array, log, exp
 from pandas import DataFrame
 
-from Tree_based_algorithms.gradient_boosting_abstract import GradientBoostingClassifier
+from Tree_based_algorithms.gradient_boosting_abstract import GradientBoostingMachine
 
 
-class GradientBoostingClassifier(GradientBoostingClassifier):
+class GradientBoostingClassifier(GradientBoostingMachine):
     """currently supports only binomial log likelihood as in the original paper of friedman"""
 
-    def __init__(self, n_estimators, learning_rate):
+    def __init__(self, tree, n_estimators=100, learning_rate=0.01):
         self.n_estimators = n_estimators
         self.learning_rate = learning_rate
-        self.tree = CartRegressionTree  # TODO change to classification tree
+        self.tree = tree
         self.base_prediction = None
         self.trees = []
         self.step_sizes = []
