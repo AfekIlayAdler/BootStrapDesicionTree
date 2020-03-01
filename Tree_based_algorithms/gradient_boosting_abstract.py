@@ -1,4 +1,4 @@
-class GradientBoostingClassifier:
+class GradientBoostingMachine:
     """currently supports only binomial log likelihood as in the original paper of friedman"""
 
     def compute_gradient(self, x, y):
