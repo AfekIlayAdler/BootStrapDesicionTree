@@ -5,6 +5,7 @@ import pandas as pd
 from Tree.tree import CartRegressionTree, CartClassificationTree, CartRegressionTreeKFold
 from Tree.tree_feature_importance import weighted_variance_reduction_feature_importance
 from Tree.tree_visualizer import TreeVisualizer
+from sklearn.model_selection import train_test_split
 
 if __name__ == '__main__':
     # TODO : chech way feature importance is negative
@@ -42,10 +43,12 @@ if __name__ == '__main__':
               'LSTAT': 'float64',
               'y': 'float64'}
     df = pd.read_csv(input_path, dtype=dtypes)
-    # tree = CartRegressionTree("y", max_depth=4)
-    tree = CartRegressionTreeKFold("y", max_depth=4)
-    tree.build(df)
+    X_train, X_test = train_test_split(df, test_size=0.1)
+    tree = CartRegressionTree("y", max_depth=4)
+    # tree = CartRegressionTreeKFold("y", max_depth=4)
+    tree.build(X_train)
+    print(tree.predict(X_test.to_dict('records')))
     tree_vis = TreeVisualizer()
     tree_vis.plot(tree.root)
     fi = weighted_variance_reduction_feature_importance(tree)
-    print(pd.Series(fi))
+    print(pd.Series(fi)/pd.Series(fi).sum())
