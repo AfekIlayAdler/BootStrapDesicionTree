@@ -9,9 +9,9 @@ from Tree.splitters.cart_splitter import CartRegressionSplitter, CartTwoClassCla
 from Tree.utils import get_cols_dtypes, impurity_dict, get_col_type
 
 MAX_DEPTH = np.inf
-MIN_SAMPLE_LEAF = 1
-MIN_SAMPLE_SPLIT = 2
-MEAN_IMPURITY_DECREASE = 0.
+MIN_SAMPLES_LEAF = 1
+MIN_SAMPLES_SPLIT = 2
+MIN_IMPURITY_DECREASE = 0.
 
 
 class BaseTree:
@@ -93,10 +93,10 @@ class BaseTree:
 
 class CartRegressionTree(BaseTree):
     def __init__(self, label_col_name,
-                 min_samples_leaf=MIN_SAMPLE_LEAF,
+                 min_samples_leaf=MIN_SAMPLES_LEAF,
                  max_depth=MAX_DEPTH,
-                 min_impurity_decrease=MEAN_IMPURITY_DECREASE,
-                 min_samples_split=MIN_SAMPLE_SPLIT):
+                 min_impurity_decrease=MIN_IMPURITY_DECREASE,
+                 min_samples_split=MIN_SAMPLES_SPLIT):
         super().__init__(node_getter=GetNode,
                          splitter=CartRegressionSplitter(min_samples_leaf),
                          label_col_name=label_col_name,
@@ -107,10 +107,10 @@ class CartRegressionTree(BaseTree):
 
 class CartClassificationTree(BaseTree):
     def __init__(self, label_col_name,
-                 min_samples_leaf=MIN_SAMPLE_LEAF,
+                 min_samples_leaf=MIN_SAMPLES_LEAF,
                  max_depth=MAX_DEPTH,
-                 min_impurity_decrease=MEAN_IMPURITY_DECREASE,
-                 min_samples_split=MIN_SAMPLE_SPLIT):
+                 min_impurity_decrease=MIN_IMPURITY_DECREASE,
+                 min_samples_split=MIN_SAMPLES_SPLIT):
         super().__init__(node_getter=GetNode,
                          splitter=CartTwoClassClassificationSplitter(min_samples_leaf),
                          label_col_name=label_col_name,
@@ -121,10 +121,10 @@ class CartClassificationTree(BaseTree):
 
 class CartRegressionTreeKFold(BaseTree):
     def __init__(self, label_col_name,
-                 min_samples_leaf=MIN_SAMPLE_LEAF,
+                 min_samples_leaf=MIN_SAMPLES_LEAF,
                  max_depth=MAX_DEPTH,
-                 min_impurity_decrease=MEAN_IMPURITY_DECREASE,
-                 min_samples_split=MIN_SAMPLE_SPLIT):
+                 min_impurity_decrease=MIN_IMPURITY_DECREASE,
+                 min_samples_split=MIN_SAMPLES_SPLIT):
         super().__init__(node_getter=KFoldGetNode,
                          splitter=CartRegressionSplitter(min_samples_leaf),
                          label_col_name=label_col_name,
