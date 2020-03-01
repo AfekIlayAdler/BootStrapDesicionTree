@@ -8,10 +8,15 @@ from Tree.node import Leaf, InternalNode
 from Tree.splitters.cart_splitter import CartRegressionSplitter, CartTwoClassClassificationSplitter
 from Tree.utils import get_cols_dtypes, impurity_dict, get_col_type
 
+MAX_DEPTH = np.inf
+MIN_SAMPLE_LEAF = 1
+MIN_SAMPLE_SPLIT = 2
+MEAN_IMPURITY_DECREASE = 0.
+
 
 class BaseTree:
     def __init__(self, node_getter, splitter, label_col_name,
-                 max_depth, min_impurity_decrease=0., min_samples_split=2):
+                 max_depth, min_impurity_decrease, min_samples_split):
         self.node_getter = node_getter
         self.splitter = splitter
         self.label_col_name = label_col_name
@@ -87,24 +92,43 @@ class BaseTree:
 
 
 class CartRegressionTree(BaseTree):
-    def __init__(self, label_col_name, min_samples_leaf=1, max_depth=np.inf):
+    def __init__(self, label_col_name,
+                 min_samples_leaf=MIN_SAMPLE_LEAF,
+                 max_depth=MAX_DEPTH,
+                 min_impurity_decrease=MEAN_IMPURITY_DECREASE,
+                 min_samples_split=MIN_SAMPLE_SPLIT):
         super().__init__(node_getter=GetNode,
                          splitter=CartRegressionSplitter(min_samples_leaf),
                          label_col_name=label_col_name,
-                         max_depth=max_depth)
+                         max_depth=max_depth,
+                         min_impurity_decrease=min_impurity_decrease,
+                         min_samples_split=min_samples_split)
 
 
 class CartClassificationTree(BaseTree):
-    def __init__(self, label_col_name, min_samples_leaf=1, max_depth=np.inf):
+    def __init__(self, label_col_name,
+                 min_samples_leaf=MIN_SAMPLE_LEAF,
+                 max_depth=MAX_DEPTH,
+                 min_impurity_decrease=MEAN_IMPURITY_DECREASE,
+                 min_samples_split=MIN_SAMPLE_SPLIT):
         super().__init__(node_getter=GetNode,
                          splitter=CartTwoClassClassificationSplitter(min_samples_leaf),
                          label_col_name=label_col_name,
-                         max_depth=max_depth)
+                         max_depth=max_depth,
+                         min_impurity_decrease=min_impurity_decrease,
+                         min_samples_split=min_samples_split)
 
 
 class CartRegressionTreeKFold(BaseTree):
-    def __init__(self, label_col_name, min_samples_leaf=1, max_depth=np.inf):
+    def __init__(self, label_col_name,
+                 min_samples_leaf=MIN_SAMPLE_LEAF,
+                 max_depth=MAX_DEPTH,
+                 min_impurity_decrease=MEAN_IMPURITY_DECREASE,
+                 min_samples_split=MIN_SAMPLE_SPLIT):
         super().__init__(node_getter=KFoldGetNode,
                          splitter=CartRegressionSplitter(min_samples_leaf),
                          label_col_name=label_col_name,
-                         max_depth=max_depth)
+                         max_depth=max_depth,
+                         min_impurity_decrease = min_impurity_decrease,
+                         min_samples_split=min_samples_split)
+
