@@ -80,7 +80,7 @@ class BaseTree:
             self.split(root)
         self.root = root
 
-    def predict(self, records: List[Dict]):
+    def predict(self, records: List[Dict]) -> np.array:
         results = np.zeros(len(records))
         for i, row in enumerate(records):
             node = self.root
