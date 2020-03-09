@@ -3,7 +3,7 @@ from Tree.tree import CartRegressionTree
 from numpy import mean, array, log, exp
 from pandas import DataFrame
 
-from Tree_based_algorithms.gradient_boosting_abstract import GradientBoostingMachine
+from gradient_boosting_trees.gradient_boosting_abstract import GradientBoostingMachine
 
 
 class GradientBoostingClassifier(GradientBoostingMachine):

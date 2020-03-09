@@ -50,5 +50,8 @@ class KFoldGetNode(GetNode):
         for train_index, validation_index in kf.split(df):
             train, validation = df.iloc[train_index], df.iloc[validation_index]
             temp_kfold_node = self._get(train)
+            # TODO: check if those next two lines makes sense-
+            if not temp_kfold_node:
+                return None, None
             validation_error += self.calculate_fold_error(temp_kfold_node, train, validation)
         return best_node, validation_error

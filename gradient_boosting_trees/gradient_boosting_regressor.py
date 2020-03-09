@@ -1,12 +1,16 @@
-from pathlib import Path
-
-import pandas as pd
 from numpy import mean, array, sum
 
 from Tree.tree import CartRegressionTree, CartRegressionTreeKFold, MIN_SAMPLES_LEAF, MAX_DEPTH, MIN_IMPURITY_DECREASE, \
     MIN_SAMPLES_SPLIT
+from Tree.tree_feature_importance import weighted_variance_reduction_feature_importance
+from gradient_boosting_trees.gradient_boosting_abstract import GradientBoostingMachine, N_ESTIMATORS, LEARNING_RATE, \
+    GRADIENT_BOOSTING_LABEL
+from numpy import mean, array, sum
 
-from Tree_based_algorithms.gradient_boosting_abstract import GradientBoostingMachine, N_ESTIMATORS, LEARNING_RATE, \
+from Tree.tree import CartRegressionTree, CartRegressionTreeKFold, MIN_SAMPLES_LEAF, MAX_DEPTH, MIN_IMPURITY_DECREASE, \
+    MIN_SAMPLES_SPLIT
+from Tree.tree_feature_importance import weighted_variance_reduction_feature_importance
+from gradient_boosting_trees.gradient_boosting_abstract import GradientBoostingMachine, N_ESTIMATORS, LEARNING_RATE, \
     GRADIENT_BOOSTING_LABEL
 
 
@@ -30,6 +34,7 @@ class GradientBoostingRegressor(GradientBoostingMachine):
         self.min_samples_leaf = min_samples_leaf
         self.tree = base_tree
         self.base_prediction = None
+        self.features = None
         self.trees = []
 
     def compute_gradient(self, x, y):
@@ -49,6 +54,7 @@ class GradientBoostingRegressor(GradientBoostingMachine):
     def fit(self, data):
         y = data[self.label_col_name]
         x = data.drop(columns=[self.label_col_name])
+        self.features = x.columns
         self.base_prediction = mean(y)
         f = mean(y)
         for m in range(self.n_estimators):
@@ -62,6 +68,14 @@ class GradientBoostingRegressor(GradientBoostingMachine):
             prediction = self.mean + self.learning_rate * sum(array([tree.predict(row) for tree in self.trees]))
             predictions.append(prediction)
         return array(predictions)
+
+    def compute_feature_importance(self):
+        gbm_feature_importances = {feature: 0 for feature in self.features}
+        for tree in self.trees:
+            tree_feature_importance = weighted_variance_reduction_feature_importance(tree)
+            for feature, feature_importance in tree_feature_importance.items():
+                gbm_feature_importances[feature] += feature_importance
+        return gbm_feature_importances
 
 
 class CartGradientBoostingRegressor(GradientBoostingRegressor):
@@ -100,27 +114,3 @@ class CartGradientBoostingRegressorKfold(GradientBoostingRegressor):
             max_depth=max_depth,
             min_impurity_decrease=min_impurity_decrease,
             min_samples_split=min_samples_split)
-
-
-if __name__ == '__main__':
-    input_path = Path.cwd().parent / "Datasets/boston_house_prices/boston_house_prices.csv"
-    dtypes = {'CRIM': 'float64',
-              'ZN': 'float64',
-              'INDUS': 'float64',
-              'CHAS': 'category',
-              'NOX': 'float64',
-              'RM': 'float64',
-              'AGE': 'float64',
-              'DIS': 'float64',
-              'RAD': 'category',
-              'TAX': 'float64',
-              'PTRATIO': 'float64',
-              'B': 'float64',
-              'LSTAT': 'float64',
-              'y': 'float64'}
-
-    df = pd.read_csv(input_path, dtype=dtypes)
-    gbm = CartGradientBoostingRegressor("y", max_depth=4, n_estimators=2, learning_rate=0.01)
-    gbm.fit(df)
-    # fi = weighted_variance_reduction_feature_importance(test_tree)
-    # print(pd.Series(fi) / pd.Series(fi).sum())
