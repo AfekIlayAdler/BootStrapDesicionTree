@@ -8,3 +8,5 @@
 /experiments/Interaction.ipynb
 /Tree/Verify/.ipynb_checkpoints/Untitled-checkpoint.ipynb
 /Tree/Verify/Untitled.ipynb
+*.pkl
+/catboost_info/*
