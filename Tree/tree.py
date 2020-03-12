@@ -26,6 +26,7 @@ class BaseTree:
         self.max_depth = max_depth
         self.root = None
         self.column_dtypes = None
+        self.n_leaves = 0
 
     def calculate_impurity(self, y) -> float:
         return self.impurity(y)
@@ -72,6 +73,8 @@ class BaseTree:
             node.add_child_nodes(child_name, child_node)
             if isinstance(child_node, InternalNode):
                 self.split(child_node)
+            else:
+                self.n_leaves += 1
 
     def build(self, data: pd.DataFrame):
         self.column_dtypes = get_cols_dtypes(data, self.label_col_name)
