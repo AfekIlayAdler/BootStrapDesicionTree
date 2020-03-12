@@ -1,11 +1,12 @@
-from Tree.node import InternalNode
+from Tree.node import InternalNode, Leaf
 
 
 def weighted_variance_reduction_feature_importance(tree):
     # based on https://stats.stackexchange.com/questions/162162/relative-variable-importance-for-boosting
-    # TODO: chech if bark
     queue = [[tree.root]]
     feature_importance = {feature: 0 for feature in tree.column_dtypes.keys()}
+    if isinstance(tree.root, Leaf):
+        return feature_importance
     tree_depth = 0
     while queue:
         level_nodes = queue.pop(0)
