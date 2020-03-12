@@ -5,13 +5,6 @@ from Tree.tree import CartRegressionTree, CartRegressionTreeKFold, MIN_SAMPLES_L
 from Tree.tree_feature_importance import weighted_variance_reduction_feature_importance
 from gradient_boosting_trees.gradient_boosting_abstract import GradientBoostingMachine, N_ESTIMATORS, LEARNING_RATE, \
     GRADIENT_BOOSTING_LABEL
-from numpy import mean, array, sum
-
-from Tree.tree import CartRegressionTree, CartRegressionTreeKFold, MIN_SAMPLES_LEAF, MAX_DEPTH, MIN_IMPURITY_DECREASE, \
-    MIN_SAMPLES_SPLIT
-from Tree.tree_feature_importance import weighted_variance_reduction_feature_importance
-from gradient_boosting_trees.gradient_boosting_abstract import GradientBoostingMachine, N_ESTIMATORS, LEARNING_RATE, \
-    GRADIENT_BOOSTING_LABEL
 
 
 class GradientBoostingRegressor(GradientBoostingMachine):
@@ -71,6 +64,7 @@ class GradientBoostingRegressor(GradientBoostingMachine):
 
     def compute_feature_importance(self):
         gbm_feature_importances = {feature: 0 for feature in self.features}
+        # TODO : deal with the case that a tree is a bark
         for tree in self.trees:
             tree_feature_importance = weighted_variance_reduction_feature_importance(tree)
             for feature, feature_importance in tree_feature_importance.items():
