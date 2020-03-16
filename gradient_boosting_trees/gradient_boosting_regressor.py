@@ -1,4 +1,5 @@
 from numpy import mean, array, sum
+from pandas import DataFrame
 
 from Tree.tree import CartRegressionTree, CartRegressionTreeKFold, MIN_SAMPLES_LEAF, MAX_DEPTH, MIN_IMPURITY_DECREASE, \
     MIN_SAMPLES_SPLIT
@@ -29,6 +30,7 @@ class GradientBoostingRegressor(GradientBoostingMachine):
         self.base_prediction = None
         self.features = None
         self.trees = []
+        self.mean = None
 
     def compute_gradient(self, x, y):
         data = x.copy()
@@ -50,17 +52,18 @@ class GradientBoostingRegressor(GradientBoostingMachine):
         self.features = x.columns
         self.base_prediction = mean(y)
         f = mean(y)
+        self.mean = f
         for m in range(self.n_estimators):
             pseudo_response = y - f
             gradients = self.compute_gradient(x, pseudo_response)
             f += self.learning_rate * gradients
 
-    def predict(self, data):
-        predictions = []
-        for row in data:
-            prediction = self.mean + self.learning_rate * sum(array([tree.predict(row) for tree in self.trees]))
-            predictions.append(prediction)
-        return array(predictions)
+    def predict(self, data: DataFrame):
+        X = data.copy()
+        X['prediction'] = self.mean
+        for tree in self.trees:
+            X['prediction'] += self.learning_rate * tree.predict(X.to_dict('records'))
+        return X['prediction']
 
     def compute_feature_importance(self):
         gbm_feature_importances = {feature: 0 for feature in self.features}
