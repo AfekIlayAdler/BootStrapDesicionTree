@@ -7,25 +7,30 @@ from Tree.tree_feature_importance import weighted_variance_reduction_feature_imp
 from Tree.tree_visualizer import TreeVisualizer
 from sklearn.model_selection import train_test_split
 
+import time
+
 if __name__ == '__main__':
     # TODO : chech way feature importance is negative
-    # CHECK_TYPE_REGRESSION = True
-    # np.random.seed(3)
-    # input_path = Path.cwd().parent / "Datasets\house_prices_regrssion\house_pricing_moc_dataset.csv"
-    # df = pd.read_csv(input_path, dtype={'OverallCond': 'category', 'HouseStyle': 'category'})
-    # if CHECK_TYPE_REGRESSION:
-    #     df['SalePrice'] /= 10000
-    #     tree = CartRegressionTree("SalePrice", max_depth=4)
-    # else:
-    #     df['SalePrice'] = np.random.randint(0, 2, df.shape[0])
-    #     tree = CartClassificationTree("SalePrice", max_depth=4)
-    # tree.build(df)
-    # # test = {'LotArea': 8450, 'YearBuilt': 2003, 'OverallCond': 'medium', 'HouseStyle': '2Story'}
-    # # tree.predict(test)
-    # tree_vis = TreeVisualizer()
-    # tree_vis.plot(tree.root)
-    # fi = weighted_variance_reduction_feature_importance(tree)
-    # print(fi)
+    """
+    CHECK_TYPE_REGRESSION = True
+    np.random.seed(3)
+    input_path = Path.cwd().parent / "Datasets\house_prices_regrssion\house_pricing_moc_dataset.csv"
+    df = pd.read_csv(input_path, dtype={'OverallCond': 'category', 'HouseStyle': 'category'})
+    if CHECK_TYPE_REGRESSION:
+        df['SalePrice'] /= 10000
+        tree = CartRegressionTree("SalePrice", max_depth=4)
+    else:
+        df['SalePrice'] = np.random.randint(0, 2, df.shape[0])
+        tree = CartClassificationTree("SalePrice", max_depth=4)
+    tree.build(df)
+    # test = {'LotArea': 8450, 'YearBuilt': 2003, 'OverallCond': 'medium', 'HouseStyle': '2Story'}
+    # tree.predict(test)
+    tree_vis = TreeVisualizer()
+    tree_vis.plot(tree.root)
+    fi = weighted_variance_reduction_feature_importance(tree)
+    print(fi)
+    """
+    start = time.time()
     np.random.seed(3)
     input_path = Path.cwd().parent / "Datasets/boston_house_prices/boston_house_prices.csv"
     dtypes = {'CRIM': 'float64',
@@ -42,13 +47,17 @@ if __name__ == '__main__':
               'B': 'float64',
               'LSTAT': 'float64',
               'y': 'float64'}
-    df = pd.read_csv(input_path, dtype=dtypes)
-    X_train, X_test = train_test_split(df, test_size=0.1)
+    # df = pd.read_csv(input_path, dtype=dtypes)
+    # X_train, X_test = train_test_split(df, test_size=0.1)
     tree = CartRegressionTree("y", max_depth=4)
     # tree = CartRegressionTreeKFold("y", max_depth=4)
-    tree.build(X_train)
-    print(tree.predict(X_test.to_dict('records')))
-    tree_vis = TreeVisualizer()
-    tree_vis.plot(tree.root)
+    df = pd.DataFrame(np.random.random((100000, 20)))
+    df['y'] = np.random.random(100000)
+    tree.build(df)
+    # print(tree.predict(X_test.to_dict('records')))
+    # tree_vis = TreeVisualizer()
+    # tree_vis.plot(tree.root)
     fi = weighted_variance_reduction_feature_importance(tree)
-    print(pd.Series(fi)/pd.Series(fi).sum())
+    # print(pd.Series(fi)/pd.Series(fi).sum())
+    end = time.time()
+    print(end - start)
