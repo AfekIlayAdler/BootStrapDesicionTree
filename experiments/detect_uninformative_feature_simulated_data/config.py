@@ -1,9 +1,8 @@
 from pathlib import Path
 from numpy import arange
 
-
 # exp
-CATEGORIES = arange(10, 210, 10)
+CATEGORIES = list(arange(2, 10, 2)) + list(arange(10, 200, 10))
 N_EXPERIMENTS = 5
 
 # data
@@ -13,7 +12,6 @@ SIGMA = 10
 N_ROWS = 10 ** 3
 CATEGORY_COLUMN_NAME = 'random_category'
 Y_COL_NAME = 'y'
-
 
 # gbm
 MAX_DEPTH = 4

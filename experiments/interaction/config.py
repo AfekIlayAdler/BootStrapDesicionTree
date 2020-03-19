@@ -3,7 +3,7 @@ from numpy import arange
 
 
 # exp
-CATEGORIES = arange(10, 200, 10)
+CATEGORIES = list(arange(2,10,2)) +list(arange(10, 200, 10))
 N_EXPERIMENTS = 2
 
 # data
