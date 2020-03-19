@@ -27,8 +27,8 @@ def make_dirs(dirs):
 
 def get_fitted_model(path, model, X, y_col_name):
     if path.exists():
-        with open(path, 'wb') as output:
-            model = pickle.load(model, output, pickle.HIGHEST_PROTOCOL)
+        with open(path, 'rb') as input_file:
+            model = pickle.load(input_file)
 
     else:
         model = model(y_col_name, max_depth=MAX_DEPTH, n_estimators=N_ESTIMATORS,
