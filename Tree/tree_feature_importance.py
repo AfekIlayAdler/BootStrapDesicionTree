@@ -1,7 +1,7 @@
 from Tree.node import InternalNode, Leaf
 
 
-def weighted_variance_reduction_feature_importance(tree, method='gain'):
+def node_based_feature_importance(tree, method='gain'):
     # based on https://stats.stackexchange.com/questions/162162/relative-variable-importance-for-boosting
     queue = [[tree.root]]
     feature_importance = {feature: 0 for feature in tree.column_dtypes.keys()}
@@ -21,7 +21,7 @@ def weighted_variance_reduction_feature_importance(tree, method='gain'):
             # actually node.n_examples is not needed here.
             if method == 'gain':
                 feature_importance[node.field] += (node.n_examples / tree.root.n_examples) * node_mean_purity_reduction
-            else:  # method == number of modes
+            if method == 'split_count':  # method == number of modes
                 feature_importance[node.field] += 1
         if next_level_nodes:
             queue.append(next_level_nodes)
