@@ -12,13 +12,14 @@ if __name__ == '__main__':
     make_dirs([MODELS_DIR, RESULTS_DIR])
     for exp_number, category_size in tqdm(all_experiments(), total=n_experiments):
         np.random.seed(exp_number)
-        for predictor_name, predictor in {'Kfold': CartGradientBoostingRegressorKfold,
+        for predictor_name, predictor in {'Ffold': CartGradientBoostingRegressorKfold,
                                           'CartVanilla': CartGradientBoostingRegressor}.items():
             exp_name = F"{EXP_NAME}__{predictor_name}_exp_{exp_number}_category_size_{category_size}"
             model_path = MODELS_DIR / F"{exp_name}.pkl"
-            exp_results_path = RESULTS_DIR / F"{exp_name}.pkl"
+            exp_results_path = RESULTS_DIR / F"{exp_name}.csv"
             X = create_x(category_size)
             fitted_model = get_fitted_model(model_path, predictor, X, Y_COL_NAME)
             fi = pd.Series(fitted_model.compute_feature_importance()).sort_index()
             fi /= fi.sum()
+            fi.to_csv(exp_results_path, header= None)
             save_model(model_path, fitted_model)
