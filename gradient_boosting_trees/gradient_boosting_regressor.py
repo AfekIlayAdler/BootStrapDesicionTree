@@ -3,7 +3,7 @@ from pandas import DataFrame
 
 from Tree.tree import CartRegressionTree, CartRegressionTreeKFold, MIN_SAMPLES_LEAF, MAX_DEPTH, MIN_IMPURITY_DECREASE, \
     MIN_SAMPLES_SPLIT
-from Tree.tree_feature_importance import weighted_variance_reduction_feature_importance
+from Tree.tree_feature_importance import node_based_feature_importance
 from gradient_boosting_trees.gradient_boosting_abstract import GradientBoostingMachine, N_ESTIMATORS, LEARNING_RATE, \
     GRADIENT_BOOSTING_LABEL
 
@@ -65,11 +65,11 @@ class GradientBoostingRegressor(GradientBoostingMachine):
             X['prediction'] += self.learning_rate * tree.predict(X.to_dict('records'))
         return X['prediction']
 
-    def compute_feature_importance(self):
+    def compute_feature_importance(self, method='gain'):
         gbm_feature_importances = {feature: 0 for feature in self.features}
         # TODO : deal with the case that a tree is a bark
         for tree in self.trees:
-            tree_feature_importance = weighted_variance_reduction_feature_importance(tree)
+            tree_feature_importance = node_based_feature_importance(tree, method=method)
             for feature, feature_importance in tree_feature_importance.items():
                 gbm_feature_importances[feature] += feature_importance
         return gbm_feature_importances
