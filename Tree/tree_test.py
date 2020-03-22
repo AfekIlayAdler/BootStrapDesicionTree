@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 
 from Tree.tree import CartRegressionTree, CartClassificationTree, CartRegressionTreeKFold
-from Tree.tree_feature_importance import weighted_variance_reduction_feature_importance
+from Tree.tree_feature_importance import node_based_feature_importance
 from Tree.tree_visualizer import TreeVisualizer
 from sklearn.model_selection import train_test_split
 
@@ -57,7 +57,7 @@ if __name__ == '__main__':
     # print(tree.predict(X_test.to_dict('records')))
     # tree_vis = TreeVisualizer()
     # tree_vis.plot(tree.root)
-    fi = weighted_variance_reduction_feature_importance(tree)
+    fi = node_based_feature_importance(tree)
     # print(pd.Series(fi)/pd.Series(fi).sum())
     end = time.time()
     print(end - start)
