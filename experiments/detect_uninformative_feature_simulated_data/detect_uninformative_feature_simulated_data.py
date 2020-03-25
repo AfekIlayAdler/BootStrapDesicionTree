@@ -1,5 +1,4 @@
 import numpy as np
-import pandas as pd
 from tqdm import tqdm
 
 from experiments.detect_uninformative_feature_simulated_data.config import RESULTS_DIR, EXP_NAME, Y_COL_NAME, MODELS_DIR
@@ -19,7 +18,4 @@ if __name__ == '__main__':
             exp_results_path = RESULTS_DIR / F"{exp_name}.csv"
             X = create_x(category_size)
             fitted_model = get_fitted_model(model_path, predictor, X, Y_COL_NAME)
-            fi = pd.Series(fitted_model.compute_feature_importance()).sort_index()
-            fi /= fi.sum()
-            fi.to_csv(exp_results_path, header= None)
             save_model(model_path, fitted_model)
