@@ -3,12 +3,10 @@ from numpy import arange
 
 # exp
 CATEGORIES = list(arange(2, 10, 2)) + list(arange(10, 200, 10))
-A1_VALUES = [2, 10, 50, 100, 200]
-N_EXPERIMENTS = 2
+A_VALUES = arange(0, 1.05, 0.05)
+N_EXPERIMENTS = 10
 
 # data
-A1 = 2
-A2 = 5
 SIGMA = 3
 N_ROWS = 10 ** 3
 VAL_RATIO = 0.15

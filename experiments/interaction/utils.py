@@ -6,29 +6,23 @@ import numpy as np
 import pandas as pd
 
 from Tree.node import Leaf
-from experiments.interaction.config import N_ROWS, SIGMA, A1, CATEGORY_COLUMN_NAME, \
-    Y_COL_NAME, MAX_DEPTH, LEARNING_RATE, N_ESTIMATORS, A2, N_EXPERIMENTS, CATEGORIES, A1_VALUES
+from experiments.interaction.config import N_ROWS, SIGMA, CATEGORY_COLUMN_NAME, \
+    Y_COL_NAME, MAX_DEPTH, LEARNING_RATE, N_ESTIMATORS, N_EXPERIMENTS, CATEGORIES, A_VALUES
 from experiments.interaction.one_hot_encoder import OneHotEncoder
 from gradient_boosting_trees.gradient_boosting_abstract import GradientBoostingMachine
 from gradient_boosting_trees.gradient_boosting_classifier import GradientBoostingClassifier
 from gradient_boosting_trees.gradient_boosting_regressor import GradientBoostingRegressor
 
 
-def create_x_y(category_size, a1=A1, a2=A2):
+def create_x_y(category_size, a):
     X = pd.DataFrame()
     X[CATEGORY_COLUMN_NAME] = np.random.randint(0, category_size, N_ROWS)
     X['x1'] = np.random.randn(N_ROWS)
     X[CATEGORY_COLUMN_NAME] = X[CATEGORY_COLUMN_NAME].astype('category')
     sigma = SIGMA * np.random.randn(N_ROWS)
     left_group = [i for i in range(category_size // 2)]
-    y = a1 * X['x1'] + a2 * X[CATEGORY_COLUMN_NAME].isin(left_group) + sigma
+    y = a * X['x1'] + (1-a) * X[CATEGORY_COLUMN_NAME].isin(left_group) + sigma
     return X, y
-
-
-def create_x(category_size, a1=A1, a2=A2):
-    x, y = create_x_y(category_size, a1, a2)
-    x[Y_COL_NAME] = y
-    return x
 
 
 def create_mean_imputing_x_x_val(x, y, x_val):
@@ -77,9 +71,9 @@ def save_model(path, model):
 
 
 def all_experiments():
-    return [(exp_number, category_size, a1) for exp_number in range(N_EXPERIMENTS)
+    return [(exp_number, category_size, a) for exp_number in range(N_EXPERIMENTS)
             for category_size in CATEGORIES
-            for a1 in A1_VALUES]
+            for a in A_VALUES]
 
 
 def compute_ntrees_nleaves(gbm):
