@@ -12,6 +12,7 @@ SIGMA = 10
 N_ROWS = 10 ** 3
 CATEGORY_COLUMN_NAME = 'random_category'
 Y_COL_NAME = 'y'
+VAL_RATIO = 0.15
 
 # gbm
 MAX_DEPTH = 4
