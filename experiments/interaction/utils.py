@@ -71,9 +71,17 @@ def save_model(path, model):
 
 
 def all_experiments():
+    a_values = []
+    for i in A_VALUES:
+        a = str(i)
+        if len(a) > 3:
+            a = a[:4]
+        if a[-1] == '0' and a[-3] not in ['0','1']:
+            a = a[:-1]
+        a_values.append(a)
     return [(exp_number, category_size, a) for exp_number in range(N_EXPERIMENTS)
             for category_size in CATEGORIES
-            for a in A_VALUES]
+            for a in a_values]
 
 
 def compute_ntrees_nleaves(gbm):
