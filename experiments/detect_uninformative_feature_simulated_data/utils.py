@@ -6,17 +6,43 @@ import pandas as pd
 
 from experiments.detect_uninformative_feature_simulated_data.config import N_ROWS, SIGMA, A1, CATEGORY_COLUMN_NAME, \
     Y_COL_NAME, MAX_DEPTH, LEARNING_RATE, N_ESTIMATORS, A2, N_EXPERIMENTS, CATEGORIES
+from experiments.detect_uninformative_feature_simulated_data.one_hot_encoder import OneHotEncoder
 
 
-def create_x(category_size):
+def create_x_y(category_size):
     X = pd.DataFrame()
     X['x1'] = np.random.randn(N_ROWS)
     X['x2'] = np.random.randn(N_ROWS)
-    y = A1 * X['x1'] + A2 * X['x2'] + SIGMA * np.random.randn(N_ROWS)
+    sigma = SIGMA * np.random.randn(N_ROWS)
+    y = A1 * X['x1'] + A2 * X['x2'] + sigma
     X[CATEGORY_COLUMN_NAME] = np.random.randint(0, category_size, N_ROWS)
     X[CATEGORY_COLUMN_NAME] = X[CATEGORY_COLUMN_NAME].astype('category')
-    X[Y_COL_NAME] = y
-    return X
+    return X, y
+
+
+def create_one_hot_x_x_val(x, x_val):
+    one_hot = OneHotEncoder()
+    one_hot.fit(x[CATEGORY_COLUMN_NAME].to_frame())
+    x_one_hot = one_hot.transform(x[CATEGORY_COLUMN_NAME].to_frame())
+    x_one_hot['x1'] = x['x1']
+    x_one_hot['x2'] = x['x2']
+    x_one_hot_val = one_hot.transform(x_val[CATEGORY_COLUMN_NAME].to_frame())
+    x_one_hot_val['x1'] = x_val['x1']
+    x_one_hot_val['x2'] = x_val['x2']
+    return x_one_hot, x_one_hot_val
+
+
+def create_mean_imputing_x_x_val(x, y, x_val):
+    temp_x = x.copy()
+    temp_x.loc[:,Y_COL_NAME] = y
+    category_to_mean = temp_x.groupby(CATEGORY_COLUMN_NAME)[Y_COL_NAME].mean().to_dict()
+    temp_x[CATEGORY_COLUMN_NAME] = temp_x[CATEGORY_COLUMN_NAME].map(category_to_mean)
+    temp_x = temp_x.drop(columns=[Y_COL_NAME])
+    temp_x[CATEGORY_COLUMN_NAME] = temp_x[CATEGORY_COLUMN_NAME].astype('float')
+    x_val[CATEGORY_COLUMN_NAME] = x_val[CATEGORY_COLUMN_NAME].map(category_to_mean)
+    x_val[CATEGORY_COLUMN_NAME] = x_val[CATEGORY_COLUMN_NAME].astype('float')
+    x_val[CATEGORY_COLUMN_NAME] = x_val[CATEGORY_COLUMN_NAME].fillna(x_val[CATEGORY_COLUMN_NAME].mean())
+    return temp_x, x_val
 
 
 def make_dirs(dirs):
