@@ -1,6 +1,6 @@
 import random
 
-from Tree.node import InternalNode
+from node import InternalNode
 import networkx as nx
 import matplotlib.pyplot as plt
 
@@ -98,11 +98,13 @@ class TreeVisualizer:
             for node in level_nodes:
                 self.nodes.append(node)
                 if isinstance(node.node_data, InternalNode):
-                    for child_name, child in node.node_data.children.items():
-                        counter += 1
-                        child = NodeBfsWrapper(child, counter)
-                        self.edges.append((node.name, child.name))
-                        next_level_nodes.append(child)
+                    left_child = NodeBfsWrapper(node.node_data.left, counter +1)
+                    right_child = NodeBfsWrapper(node.node_data.right, counter +2)
+                    self.edges.append((node.name, left_child.name))
+                    self.edges.append((node.name, right_child.name))
+                    next_level_nodes.append(left_child)
+                    next_level_nodes.append(right_child)
+                    counter += 2
             if next_level_nodes:
                 queue.append(next_level_nodes)
 

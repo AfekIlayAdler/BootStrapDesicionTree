@@ -1,20 +1,17 @@
-from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from Tree.tree import CartRegressionTree, CartClassificationTree, CartRegressionTreeKFold
-from Tree.tree_feature_importance import node_based_feature_importance
-from Tree.tree_visualizer import TreeVisualizer
-from sklearn.model_selection import train_test_split
-
+from tree import CartRegressionTree, CartClassificationTree, CartRegressionTreeKFold
 import time
+
+from tree_visualizer import TreeVisualizer
 
 
 def create_x_y(regression=True):
     df = pd.DataFrame()
-    n_rows = 10 ** 4
+    n_rows = 10**3
     n_numeric_cols = 0
-    n_categorical_cols = 10
+    n_categorical_cols = 50
     n_categorical_values = 50
     for col in range(n_numeric_cols):
         df[col] = np.random.random(n_rows)
@@ -26,12 +23,12 @@ def create_x_y(regression=True):
 
 
 if __name__ == '__main__':
-    EXP = 'boston'
+    EXP = 'simulation' # 'boston'
     KFOLD = True
     MAX_DEPTH = 3
-    tree = CartRegressionTreeKFold(label_col_name='y', max_depth=MAX_DEPTH+1) if KFOLD else CartRegressionTree(label_col_name='y', max_depth=MAX_DEPTH+1)
+    tree = CartRegressionTreeKFold(max_depth=MAX_DEPTH) if KFOLD else CartRegressionTree(max_depth=MAX_DEPTH)
     if EXP == 'boston':
-        input_path = Path.cwd().parent / "Datasets/boston_house_prices/boston_house_prices.csv"
+        input_path = "boston_house_prices.csv"
         dtypes = {'CRIM': 'float64',
                   'ZN': 'float64',
                   'INDUS': 'float64',
@@ -48,19 +45,19 @@ if __name__ == '__main__':
                   'y': 'float64'}
         df = pd.read_csv(input_path, dtype=dtypes)
         start = time.time()
-        tree.build(df)
+        y = df['y']
+        X = df.drop(columns=['y'])
+        tree.fit(X,y)
         end = time.time()
         print(end - start)
         tree_vis = TreeVisualizer()
         tree_vis.plot(tree.root)
+
     else:
         np.random.seed(3)
-        # tree = CartRegressionTree(max_depth=3)
-        tree = CartRegressionTreeKFold(max_depth=3)
         X, y = create_x_y()
-        X['y'] = y
         start = time.time()
-        tree.build(X)
+        tree.fit(X, y)
         end = time.time()
         print(end - start)
         tree_vis = TreeVisualizer()

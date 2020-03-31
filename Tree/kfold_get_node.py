@@ -1,34 +1,17 @@
+import numpy as np
 from sklearn.model_selection import KFold
 
-from Tree.get_node import GetNode
-from Tree.node import CategoricalBinaryNode, NumericBinaryNode
-
-import numpy as np
-import pandas as pd
+from get_node import GetNode
 
 
 class KFoldGetNode(GetNode):
-    def __init__(self, splitter, col_name, label_col_name, col_type, k_folds=5):
-        super().__init__(splitter, col_name, label_col_name, col_type)
+    def __init__(self, splitter, col_name, col_type, k_folds=5):
+        super().__init__(splitter, col_name, col_type)
         self.k_folds = k_folds
 
-    def get_left_right_values(self, data, node):
-        if self.col_type == 'numeric':
-            left_filtered_data = data[data[self.col_name] <= node.thr]
-            right_filtered_data = data[data[self.col_name] > node.thr]
-        else:
-            left_filtered_data = data[data[self.col_name].isin(node.left_values)]
-            right_filtered_data = data[~data[self.col_name].isin(node.left_values)]
-        return left_filtered_data[self.label_col_name].values, right_filtered_data[self.label_col_name].values
-
-    def calculate_fold_error(self, node: [CategoricalBinaryNode, NumericBinaryNode], train: pd.DataFrame,
-                             val: pd.DataFrame) -> float:
-        left_train_response, right_train_response = self.get_left_right_values(train, node)
-        left_val_response, right_val_response = self.get_left_right_values(val, node)
-        # TODO: we can avoid left_mean & right_mean calculation by passing it from the splitter (node) object
+    def calculate_fold_error(self, left_val_response, right_val_response, left_train_mean, right_train_mean) -> float:
         if self.splitter.type == 'regression':
             # error = sum of squared errors from the prediction
-            left_train_mean, right_train_mean = np.mean(left_train_response), np.mean(right_train_response)
             left_var = np.sum(np.square(left_val_response - left_train_mean))
             right_var = np.sum(np.square(right_val_response - right_train_mean))
             return left_var + right_var
@@ -37,21 +20,49 @@ class KFoldGetNode(GetNode):
             left_p, right_p = left_val_response.mean(), right_val_response.mean()
             return left_n * left_p * (1 - left_p) + right_n * right_p(1 - right_p)
 
-    def get(self, df):
-        """ the validation score has to be on the same scale as the purity score (good practice),
-        so we sum it up snd not divide it """
-        # TODO: what happens when in validation there are missing values or values that do not appear in train, maybe avoidable by imputing
-        best_node = self._get(df)
-        if not best_node:
-            return None, None
-        # now we will calculate a real estimate for this impurity using kfold
+    def get(self, x, y):
         validation_error = 0
-        kf = KFold(n_splits=self.k_folds)
-        for train_index, validation_index in kf.split(df):
-            train, validation = df.iloc[train_index], df.iloc[validation_index]
-            temp_kfold_node = self._get(train)
-            # TODO: check if those next two lines makes sense-
-            if not temp_kfold_node:
-                return None, None
-            validation_error += self.calculate_fold_error(temp_kfold_node, train, validation)
-        return best_node, validation_error
+        n_examples = x.shape[0]
+        kf = KFold(n_splits=self.k_folds, shuffle=True)
+        cant_do_kfold = n_examples <= self.k_folds
+        if self.col_type == 'numeric':
+            x_col, y_col = 0, 1
+            array = self.create_sorted_array_for_numeric_col_type(x, y)
+            node, indices = self._get_numeric_node_col_type_numeric(array)
+            if node is None:
+                return None, None, None
+            if cant_do_kfold:
+                node, node.split_purity, indices
+            for train_index, validation_index in kf.split(array):
+                train, validation = array[train_index], array[validation_index]
+                # TODO : we have a problem with the indexes here so we cant use them.
+                temp_node, _ = self._get_numeric_node_col_type_numeric(train)
+                left_train_mean = np.mean(train[:, y_col][train[:, x_col] <= temp_node.thr])
+                right_train_mean = np.mean(train[:, y_col][train[:, x_col] > temp_node.thr])
+                left_val_response = validation[:, y_col][validation[:, x_col] <= temp_node.thr]
+                right_val_response = validation[:, y_col][validation[:, x_col] > temp_node.thr]
+                validation_error += self.calculate_fold_error(left_val_response, right_val_response, left_train_mean,
+                                                              right_train_mean)
+        else:
+            node, indices = self._get_categorical_node_col_type_numeric(x, y)
+            if node is None:
+                return None, None, None
+            if cant_do_kfold:
+                node, node.split_purity, indices
+            for train_index, validation_index in kf.split(x):
+                x_train, x_val, y_train, y_val = x[train_index], x[validation_index], y[train_index], y[
+                    validation_index]
+                temp_node, temp_indices = self._get_categorical_node_col_type_numeric(x_train, y_train)
+                try:
+                    left_train_mean, right_train_mean = np.mean(y_train[temp_indices['left']]), np.mean(
+                        y_train[temp_indices['right']])
+                except:
+                    a = 5
+                left_val_response, right_val_response = [], []
+                for val in y_val:
+                    left_val_response.append(val) if val in temp_node.left_values else right_val_response.append(val)
+                validation_error += self.calculate_fold_error(np.array(left_val_response), np.array(right_val_response),
+                                                              left_train_mean,
+                                                              right_train_mean)
+
+        return node, validation_error, indices

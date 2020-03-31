@@ -1,67 +1,64 @@
-from typing import Optional
-
 import numpy as np
-import pandas as pd
+from pandas import DataFrame
 
-from Tree.config import COUNT_COL_NAME, MEAN_RESPONSE_VALUE_SQUARED, MEAN_RESPONSE_VALUE
-from Tree.node import InternalNode
-
-column_order = [MEAN_RESPONSE_VALUE, MEAN_RESPONSE_VALUE_SQUARED, COUNT_COL_NAME]
-
-
-def general_preprocess(df: pd.DataFrame, col_name: str, label_col_name: str) -> pd.DataFrame:
-    df = df[df[col_name].notna()]
-    df[COUNT_COL_NAME] = 1
-    return df.rename(columns={label_col_name: MEAN_RESPONSE_VALUE})
+from node import NumericBinaryNode, CategoricalBinaryNode
 
 
 class GetNode:
-    def __init__(self, splitter, col_name, label_col_name, col_type):
+    def __init__(self, splitter, col_name, col_type):
         self.col_name = col_name
         self.col_type = col_type
-        self.label_col_name = label_col_name
         self.splitter = splitter
 
-    def sort(self, df) -> pd.DataFrame:
-        if self.col_type == 'categorical':
-            return df.sort_values(by=[MEAN_RESPONSE_VALUE])
-        # col_type = 'numeric'
-        return df.sort_index()
+    def get_numeric_col_split(self, array):
+        return self.splitter.get_split(array[:, 1], np.ones(array.shape[0])) if self.splitter.type == 'classification' \
+            else self.splitter.get_split(array[:, 1], array[:, 2], np.ones(array.shape[0]))
 
-    def create_node(self, split, n_examples: int) -> InternalNode:
-        if self.col_type == 'numeric':
-            thr = (split.values[split.split_index - 1] + split.values[split.split_index]) / 2
-            return self.splitter.numeric_node(n_examples, split.impurity, self.col_name, thr)
-        else:
-            left_values, right_values = split.values[:split.split_index], split.values[split.split_index:]
-            return self.splitter.categorical_node(n_examples, split.impurity, self.col_name, left_values, right_values)
+    @staticmethod
+    def create_sorted_array_for_numeric_col_type(x, y):
+        array = np.empty((x.shape[0], 4))
+        array[:, 0], array[:, 1], array[:, 2], array[:, 3] = x, y, np.square(y), np.arange(x.shape[0])
+        return array[array[:, 0].argsort()]
 
-    def preprocess(self, df: pd.DataFrame) -> pd.DataFrame:
-        df = general_preprocess(df, self.col_name, self.label_col_name)
-        if self.splitter.type == 'regression':
-            df[MEAN_RESPONSE_VALUE_SQUARED] = np.square(df[MEAN_RESPONSE_VALUE])
-            return df.groupby(self.col_name, observed=True).agg(
-                {MEAN_RESPONSE_VALUE: 'mean', MEAN_RESPONSE_VALUE_SQUARED: 'mean', COUNT_COL_NAME: 'sum'})
-        else:
-            return df.groupby(self.col_name).agg(
-                {MEAN_RESPONSE_VALUE: 'mean', COUNT_COL_NAME: 'sum'})
+    def _get_numeric_node_col_type_numeric(self, array):
+        """array: sorted array by the numeric column"""
+        split = self.get_numeric_col_split(array)
+        thr = (array[split.split_index - 1, 0] + array[split.split_index, 0]) / 2
+        left_indices = array[:split.split_index, 3]
+        right_indices = array[split.split_index:, 3]
+        indices = {'left': left_indices, 'right': right_indices}
+        indices = {k: np.array(v).astype(int) for k, v in indices.items()}
+        return NumericBinaryNode(array.shape[0], split.impurity, self.col_name, thr), indices
 
-    def _get(self, df) -> Optional[InternalNode]:
-        n_examples = df.shape[0] # TODO: check if it is indeed the right place
-        df = self.preprocess(df)
-        if df.shape[0] == 1:
-            # it is a pure leaf, we can't split on this node
-            return None
-        df = self.sort(df)
-        split = self.splitter.get_split(df)
-        if split.split_index is None:
-            # no split that holds min_samples_leaf constraint
-            return None
-        return self.create_node(split, n_examples=n_examples)
-
-    def get(self, df) -> tuple:
-        # simple case, no cross validation score so the validation score is the purity score
-        node = self._get(df)
-        if not node:
+    def _get_categorical_node_col_type_numeric(self, x, y):
+        n_examples = x.shape[0]
+        array = np.empty((x.shape[0], 3))
+        array[:, 0], array[:, 1], array[:, 2] = y, np.square(y), np.ones(x.shape[0])
+        df = DataFrame(array, index=x)
+        df = df.groupby(df.index).aggregate({0: 'mean', 1: 'mean', 2: 'sum'}).sort_values(0)
+        if df.shape[0] == 1:  # it is a pure leaf, we can't split on this node
             return None, None
-        return node, node.split_purity
+        split = self.splitter.get_split(df.loc[:, 0].values,
+                                        df.loc[:, 2].values) if self.splitter.type == 'classification' \
+            else self.splitter.get_split(df.loc[:, 0].values, df.loc[:, 1].values, df.loc[:, 2].values)
+        left_category_values, right_category_values = df.index[:split.split_index].tolist(), df.index[
+                                                                                             split.split_index:].tolist()
+        left_values_set = set(left_category_values)
+        left_indices, right_indices = [], []
+        for i, value in enumerate(x):
+            left_indices.append(i) if value in left_values_set else right_indices.append(i)
+        indices = {'left': left_indices, 'right': right_indices}
+        indices = {k: np.array(v).astype(int) for k, v in indices.items()}
+        return CategoricalBinaryNode(n_examples, split.impurity, self.col_name, left_category_values,
+                                     right_category_values), indices
+
+    def get(self, x, y) -> tuple:
+        # simple case, no cross validation score so the validation score is the purity score
+        if self.col_type == 'numeric':
+            array = self.create_sorted_array_for_numeric_col_type(x, y)
+            node, indices = self._get_numeric_node_col_type_numeric(array)
+        else:
+            node, indices = self._get_categorical_node_col_type_numeric(x, y)
+        if node is None:
+            return None, None, None
+        return node, node.split_purity, indices
