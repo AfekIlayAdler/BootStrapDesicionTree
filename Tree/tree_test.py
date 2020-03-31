@@ -9,55 +9,60 @@ from sklearn.model_selection import train_test_split
 
 import time
 
+
+def create_x_y(regression=True):
+    df = pd.DataFrame()
+    n_rows = 10 ** 4
+    n_numeric_cols = 0
+    n_categorical_cols = 10
+    n_categorical_values = 50
+    for col in range(n_numeric_cols):
+        df[col] = np.random.random(n_rows)
+    for col in range(n_categorical_cols):
+        df[col + n_numeric_cols] = np.random.randint(n_categorical_values, size=n_rows)
+        df[col + n_numeric_cols] = df[col + n_numeric_cols].astype('category')
+    y = np.random.random(n_rows) if regression else np.random.randint(2, size=n_rows)
+    return df, pd.Series(y)
+
+
 if __name__ == '__main__':
-    # TODO : chech way feature importance is negative
-    """
-    CHECK_TYPE_REGRESSION = True
-    np.random.seed(3)
-    input_path = Path.cwd().parent / "Datasets\house_prices_regrssion\house_pricing_moc_dataset.csv"
-    df = pd.read_csv(input_path, dtype={'OverallCond': 'category', 'HouseStyle': 'category'})
-    if CHECK_TYPE_REGRESSION:
-        df['SalePrice'] /= 10000
-        tree = CartRegressionTree("SalePrice", max_depth=4)
+    EXP = 'boston'
+    KFOLD = True
+    MAX_DEPTH = 3
+    tree = CartRegressionTreeKFold(label_col_name='y', max_depth=MAX_DEPTH+1) if KFOLD else CartRegressionTree(label_col_name='y', max_depth=MAX_DEPTH+1)
+    if EXP == 'boston':
+        input_path = Path.cwd().parent / "Datasets/boston_house_prices/boston_house_prices.csv"
+        dtypes = {'CRIM': 'float64',
+                  'ZN': 'float64',
+                  'INDUS': 'float64',
+                  'CHAS': 'category',
+                  'NOX': 'float64',
+                  'RM': 'float64',
+                  'AGE': 'float64',
+                  'DIS': 'float64',
+                  'RAD': 'category',
+                  'TAX': 'float64',
+                  'PTRATIO': 'float64',
+                  'B': 'float64',
+                  'LSTAT': 'float64',
+                  'y': 'float64'}
+        df = pd.read_csv(input_path, dtype=dtypes)
+        start = time.time()
+        tree.build(df)
+        end = time.time()
+        print(end - start)
+        tree_vis = TreeVisualizer()
+        tree_vis.plot(tree.root)
     else:
-        df['SalePrice'] = np.random.randint(0, 2, df.shape[0])
-        tree = CartClassificationTree("SalePrice", max_depth=4)
-    tree.build(df)
-    # test = {'LotArea': 8450, 'YearBuilt': 2003, 'OverallCond': 'medium', 'HouseStyle': '2Story'}
-    # tree.predict(test)
-    tree_vis = TreeVisualizer()
-    tree_vis.plot(tree.root)
-    fi = weighted_variance_reduction_feature_importance(tree)
-    print(fi)
-    """
-    start = time.time()
-    np.random.seed(3)
-    input_path = Path.cwd().parent / "Datasets/boston_house_prices/boston_house_prices.csv"
-    dtypes = {'CRIM': 'float64',
-              'ZN': 'float64',
-              'INDUS': 'float64',
-              'CHAS': 'category',
-              'NOX': 'float64',
-              'RM': 'float64',
-              'AGE': 'float64',
-              'DIS': 'float64',
-              'RAD': 'category',
-              'TAX': 'float64',
-              'PTRATIO': 'float64',
-              'B': 'float64',
-              'LSTAT': 'float64',
-              'y': 'float64'}
-    # df = pd.read_csv(input_path, dtype=dtypes)
-    # X_train, X_test = train_test_split(df, test_size=0.1)
-    tree = CartRegressionTree("y", max_depth=4)
-    # tree = CartRegressionTreeKFold("y", max_depth=4)
-    df = pd.DataFrame(np.random.random((100000, 20)))
-    df['y'] = np.random.random(100000)
-    tree.build(df)
-    # print(tree.predict(X_test.to_dict('records')))
-    # tree_vis = TreeVisualizer()
-    # tree_vis.plot(tree.root)
-    fi = node_based_feature_importance(tree)
-    # print(pd.Series(fi)/pd.Series(fi).sum())
-    end = time.time()
-    print(end - start)
+        np.random.seed(3)
+        # tree = CartRegressionTree(max_depth=3)
+        tree = CartRegressionTreeKFold(max_depth=3)
+        X, y = create_x_y()
+        X['y'] = y
+        start = time.time()
+        tree.build(X)
+        end = time.time()
+        print(end - start)
+        tree_vis = TreeVisualizer()
+        tree_vis.plot(tree.root)
+

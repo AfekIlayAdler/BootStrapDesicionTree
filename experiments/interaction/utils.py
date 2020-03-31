@@ -103,6 +103,3 @@ def compute_ntrees_nleaves(gbm):
 
     print(F'number of trees is {total_number_of_trees}')
     print(F'number of leaves is {total_number_of_leaves}')
-
-
-n_experiments = len(all_experiments())
