@@ -1,6 +1,6 @@
 from pandas import DataFrame, Series
 
-N_ESTIMATORS = 30
+N_ESTIMATORS = 100
 LEARNING_RATE = 0.01
 GRADIENT_BOOSTING_LABEL = 'y_residual'
 
