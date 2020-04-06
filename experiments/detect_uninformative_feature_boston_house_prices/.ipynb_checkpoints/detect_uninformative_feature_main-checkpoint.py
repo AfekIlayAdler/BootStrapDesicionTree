@@ -55,11 +55,11 @@ if __name__ == '__main__':
             df[RANDOM_CATEGORY_NAME] = df[RANDOM_CATEGORY_NAME].astype('category')
             # reg
             regular_gbm = CartGradientBoostingRegressor("y", max_depth=MAX_DEPTH, n_estimators=N_ESTIMATORS, learning_rate=LEARNING_RATE)
-            regular_gbm.fit(df)
+            regular_gbm.fit(df, )
             pd.Series(regular_gbm.compute_feature_importance()).sort_index().to_csv(F"{reg_path.parent}/{reg_path.name}", header=True)
             # kfold
             kfold_gbm = CartGradientBoostingRegressorKfold("y", max_depth=MAX_DEPTH, n_estimators=N_ESTIMATORS, learning_rate=LEARNING_RATE)
-            kfold_gbm.fit(df)
+            kfold_gbm.fit(df, )
             pd.Series(kfold_gbm.compute_feature_importance()).sort_index().to_csv(kfold_path, header=True)
             with open(RESULTS_DIR / F"{reg_exp_name}.pkl", 'wb') as output:
                 pickle.dump(regular_gbm, output, pickle.HIGHEST_PROTOCOL)

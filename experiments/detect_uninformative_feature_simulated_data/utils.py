@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 
 from experiments.detect_uninformative_feature_simulated_data.config import N_ROWS, SIGMA, A1, CATEGORY_COLUMN_NAME, \
-    Y_COL_NAME, MAX_DEPTH, LEARNING_RATE, N_ESTIMATORS, A2, N_EXPERIMENTS, CATEGORIES
+     MAX_DEPTH, LEARNING_RATE, N_ESTIMATORS, A2, N_EXPERIMENTS, CATEGORIES
 from experiments.detect_uninformative_feature_simulated_data.one_hot_encoder import OneHotEncoder
 
 
@@ -34,10 +34,11 @@ def create_one_hot_x_x_val(x, x_val):
 
 def create_mean_imputing_x_x_val(x, y, x_val):
     temp_x = x.copy()
-    temp_x.loc[:,Y_COL_NAME] = y
-    category_to_mean = temp_x.groupby(CATEGORY_COLUMN_NAME)[Y_COL_NAME].mean().to_dict()
+    col_name = 'y'
+    temp_x.loc[:,col_name] = y
+    category_to_mean = temp_x.groupby(CATEGORY_COLUMN_NAME)[col_name].mean().to_dict()
     temp_x[CATEGORY_COLUMN_NAME] = temp_x[CATEGORY_COLUMN_NAME].map(category_to_mean)
-    temp_x = temp_x.drop(columns=[Y_COL_NAME])
+    temp_x = temp_x.drop(columns=[col_name])
     temp_x[CATEGORY_COLUMN_NAME] = temp_x[CATEGORY_COLUMN_NAME].astype('float')
     x_val[CATEGORY_COLUMN_NAME] = x_val[CATEGORY_COLUMN_NAME].map(category_to_mean)
     x_val[CATEGORY_COLUMN_NAME] = x_val[CATEGORY_COLUMN_NAME].astype('float')
@@ -59,7 +60,7 @@ def get_fitted_model(path, model, X, y_col_name):
     else:
         model = model(y_col_name, max_depth=MAX_DEPTH, n_estimators=N_ESTIMATORS,
                       learning_rate=LEARNING_RATE)
-        model.fit(X)
+        model.fit(X, )
     return model
 
 

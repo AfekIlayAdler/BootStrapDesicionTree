@@ -66,14 +66,14 @@ if __name__ == '__main__':
             # reg
             regular_gbm = CartGradientBoostingRegressor(Y_COL_NAME, max_depth=MAX_DEPTH, n_estimators=N_ESTIMATORS,
                                                         learning_rate=LEARNING_RATE)
-            regular_gbm.fit(X)
+            regular_gbm.fit(X, )
             fi = pd.Series(regular_gbm.compute_feature_importance()).sort_index()
             fi /= fi.sum()
             fi.to_csv(F"{reg_path.parent}/{reg_path.name}", header=True)
             # kfold
             kfold_gbm = CartGradientBoostingRegressorKfold(Y_COL_NAME, max_depth=MAX_DEPTH, n_estimators=N_ESTIMATORS,
                                                            learning_rate=LEARNING_RATE)
-            kfold_gbm.fit(X)
+            kfold_gbm.fit(X, )
             fi = pd.Series(kfold_gbm.compute_feature_importance()).sort_index()
             fi /= fi.sum()
             fi.to_csv(kfold_path, header=True)
