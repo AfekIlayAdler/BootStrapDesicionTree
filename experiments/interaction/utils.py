@@ -1,5 +1,7 @@
 import pickle
 from os import makedirs
+from typing import List
+
 from xgboost.core import Booster
 
 import numpy as np
@@ -15,19 +17,24 @@ from gradient_boosting_trees.gradient_boosting_regressor import GradientBoosting
 
 
 def create_x_y(category_size, a):
+    a = float(a)
     X = pd.DataFrame()
     X[CATEGORY_COLUMN_NAME] = np.random.randint(0, category_size, N_ROWS)
-    X['x1'] = np.random.randn(N_ROWS)
     X[CATEGORY_COLUMN_NAME] = X[CATEGORY_COLUMN_NAME].astype('category')
-    sigma = SIGMA * np.random.randn(N_ROWS)
+    X['x1'] = np.random.randn(N_ROWS)
+    sigma = np.random.randn(N_ROWS)
     left_group = [i for i in range(category_size // 2)]
-    y = a * X['x1'] + (1-a) * X[CATEGORY_COLUMN_NAME].isin(left_group) + sigma
+    right_group = [i for i in range(category_size) if i not in left_group]
+    left_indicator = (X['x1'] > 0)*1
+    right_indicator = (X['x1'] <= 0)*1
+    y = a * left_indicator * X[CATEGORY_COLUMN_NAME].isin(left_group) + right_indicator * X[CATEGORY_COLUMN_NAME].isin(
+        right_group) + sigma
     return X, y
 
 
 def create_mean_imputing_x_x_val(x, y, x_val):
     temp_x = x.copy()
-    temp_x.loc[:,Y_COL_NAME] = y
+    temp_x.loc[:, Y_COL_NAME] = y
     category_to_mean = temp_x.groupby(CATEGORY_COLUMN_NAME)[Y_COL_NAME].mean().to_dict()
     temp_x[CATEGORY_COLUMN_NAME] = temp_x[CATEGORY_COLUMN_NAME].map(category_to_mean)
     temp_x = temp_x.drop(columns=[Y_COL_NAME])
@@ -48,7 +55,7 @@ def create_one_hot_x_x_val(x, x_val):
     return x_one_hot, x_one_hot_val
 
 
-def make_dirs(dirs):
+def make_dirs(dirs: List):
     for dir in dirs:
         if not dir.exists():
             makedirs(dir)
@@ -61,7 +68,7 @@ def get_fitted_model(path, model, X, y_col_name):
     else:
         model = model(y_col_name, max_depth=MAX_DEPTH, n_estimators=N_ESTIMATORS,
                       learning_rate=LEARNING_RATE, min_samples_leaf=5)
-        model.fit(X)
+        model.fit(X, )
     return model
 
 
@@ -71,17 +78,9 @@ def save_model(path, model):
 
 
 def all_experiments():
-    a_values = []
-    for i in A_VALUES:
-        a = str(i)
-        if len(a) > 3:
-            a = a[:4]
-        if a[-1] == '0' and a[-3] not in ['0','1']:
-            a = a[:-1]
-        a_values.append(a)
     return [(exp_number, category_size, a) for exp_number in range(N_EXPERIMENTS)
             for category_size in CATEGORIES
-            for a in a_values]
+            for a in A_VALUES]
 
 
 def compute_ntrees_nleaves(gbm):
