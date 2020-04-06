@@ -3,11 +3,11 @@ from typing import List, Dict
 import numpy as np
 import pandas as pd
 
-from get_node import GetNode
-from kfold_get_node import KFoldGetNode
-from node import Leaf, InternalNode
-from splitters.cart_splitter import CartRegressionSplitter, CartTwoClassClassificationSplitter
-from utils import get_cols_dtypes, impurity_dict, get_col_type
+from Tree.get_node import GetNode
+from Tree.kfold_get_node import KFoldGetNode
+from Tree.node import InternalNode, Leaf
+from Tree.splitters.cart_splitter import CartRegressionSplitter, CartTwoClassClassificationSplitter
+from Tree.utils import impurity_dict, get_cols_dtypes, get_col_type
 
 MAX_DEPTH = np.inf
 MIN_SAMPLES_LEAF = 1

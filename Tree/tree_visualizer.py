@@ -1,10 +1,12 @@
 import random
 
-from node import InternalNode
+
 import networkx as nx
 import matplotlib.pyplot as plt
 
 from numpy import round
+
+from Tree.node import InternalNode
 
 """
 the foolowing code was taken from: https://stackoverflow.com/questions/29586520/can-one-get-hierarchical-graphs-from-networkx-with-python-3

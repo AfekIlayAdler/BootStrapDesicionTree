@@ -2,7 +2,7 @@ from typing import Dict
 import numpy as np
 import pandas as pd
 
-from config import PANDAS_CATEGORICAL_COLS
+from Tree.config import PANDAS_CATEGORICAL_COLS
 
 
 def get_cols_dtypes(df: pd.DataFrame) -> Dict:
