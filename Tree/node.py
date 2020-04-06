@@ -1,6 +1,3 @@
-import pandas as pd
-
-
 class Leaf:
     def __init__(self, prediction: float, stopping_criteria: str, n_examples: str, purity: float):
         self.prediction = prediction
@@ -16,8 +13,6 @@ class InternalNode:
         self.field = field
         self.left = None
         self.right = None
-        self.children_data = {}
-        self.children = {}
         self.depth = None
         self.purity = None
 
