@@ -1,7 +1,7 @@
 import numpy as np
 from pandas import DataFrame
 
-from node import NumericBinaryNode, CategoricalBinaryNode
+from Tree.node import NumericBinaryNode, CategoricalBinaryNode
 
 
 class GetNode:
@@ -11,8 +11,8 @@ class GetNode:
         self.splitter = splitter
 
     def get_numeric_col_split(self, array):
-        return self.splitter.get_split(array[:, 1], np.ones(array.shape[0])) if self.splitter.type == 'classification' \
-            else self.splitter.get_split(array[:, 1], array[:, 2], np.ones(array.shape[0]))
+        return self.splitter.get_split(array[:, 0], array[:, 1], np.ones(array.shape[0])) if self.splitter.type == 'classification' \
+            else self.splitter.get_split(array[:, 0], array[:, 1], array[:, 2], np.ones(array.shape[0]))
 
     @staticmethod
     def create_sorted_array_for_numeric_col_type(x, y):
@@ -23,6 +23,8 @@ class GetNode:
     def _get_numeric_node_col_type_numeric(self, array):
         """array: sorted array by the numeric column"""
         split = self.get_numeric_col_split(array)
+        if split.split_index is None:
+            return None, None
         thr = (array[split.split_index - 1, 0] + array[split.split_index, 0]) / 2
         left_indices = array[:split.split_index, 3]
         right_indices = array[split.split_index:, 3]
@@ -38,9 +40,9 @@ class GetNode:
         df = df.groupby(df.index).aggregate({0: 'mean', 1: 'mean', 2: 'sum'}).sort_values(0)
         if df.shape[0] == 1:  # it is a pure leaf, we can't split on this node
             return None, None
-        split = self.splitter.get_split(df.loc[:, 0].values,
+        split = self.splitter.get_split(df.index, df.loc[:, 0].values,
                                         df.loc[:, 2].values) if self.splitter.type == 'classification' \
-            else self.splitter.get_split(df.loc[:, 0].values, df.loc[:, 1].values, df.loc[:, 2].values)
+            else self.splitter.get_split(df.index, df.loc[:, 0].values, df.loc[:, 1].values, df.loc[:, 2].values)
         left_category_values, right_category_values = df.index[:split.split_index].tolist(), df.index[
                                                                                              split.split_index:].tolist()
         left_values_set = set(left_category_values)

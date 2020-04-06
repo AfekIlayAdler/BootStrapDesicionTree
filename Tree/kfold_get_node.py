@@ -1,7 +1,7 @@
 import numpy as np
 from sklearn.model_selection import KFold
 
-from get_node import GetNode
+from Tree.get_node import GetNode
 
 
 class KFoldGetNode(GetNode):
@@ -25,44 +25,47 @@ class KFoldGetNode(GetNode):
         n_examples = x.shape[0]
         kf = KFold(n_splits=self.k_folds, shuffle=True)
         cant_do_kfold = n_examples <= self.k_folds
+        nans = (None, None, None)
         if self.col_type == 'numeric':
             x_col, y_col = 0, 1
             array = self.create_sorted_array_for_numeric_col_type(x, y)
             node, indices = self._get_numeric_node_col_type_numeric(array)
-            if node is None:
-                return None, None, None
-            if cant_do_kfold:
-                node, node.split_purity, indices
-            for train_index, validation_index in kf.split(array):
-                train, validation = array[train_index], array[validation_index]
-                # TODO : we have a problem with the indexes here so we cant use them.
-                temp_node, _ = self._get_numeric_node_col_type_numeric(train)
-                left_train_mean = np.mean(train[:, y_col][train[:, x_col] <= temp_node.thr])
-                right_train_mean = np.mean(train[:, y_col][train[:, x_col] > temp_node.thr])
-                left_val_response = validation[:, y_col][validation[:, x_col] <= temp_node.thr]
-                right_val_response = validation[:, y_col][validation[:, x_col] > temp_node.thr]
-                validation_error += self.calculate_fold_error(left_val_response, right_val_response, left_train_mean,
-                                                              right_train_mean)
+            if node:
+                if cant_do_kfold:
+                    return node, node.split_purity, indices
+                for train_index, validation_index in kf.split(array):
+                    train, validation = array[train_index], array[validation_index]
+                    temp_node, _ = self._get_numeric_node_col_type_numeric(train)
+                    if temp_node is None:
+                        return node, node.split_purity, indices
+                    left_train_mean = np.mean(train[:, y_col][train[:, x_col] <= temp_node.thr])
+                    right_train_mean = np.mean(train[:, y_col][train[:, x_col] > temp_node.thr])
+                    left_val_response = validation[:, y_col][validation[:, x_col] <= temp_node.thr]
+                    right_val_response = validation[:, y_col][validation[:, x_col] > temp_node.thr]
+                    validation_error += self.calculate_fold_error(left_val_response, right_val_response, left_train_mean,
+                                                                  right_train_mean)
+                return node, validation_error, indices
+            else:
+                return nans
+
         else:
             node, indices = self._get_categorical_node_col_type_numeric(x, y)
-            if node is None:
-                return None, None, None
-            if cant_do_kfold:
-                node, node.split_purity, indices
-            for train_index, validation_index in kf.split(x):
-                x_train, x_val, y_train, y_val = x[train_index], x[validation_index], y[train_index], y[
-                    validation_index]
-                temp_node, temp_indices = self._get_categorical_node_col_type_numeric(x_train, y_train)
-                try:
+            if node:
+                if cant_do_kfold:
+                    return node, node.split_purity, indices
+                for train_index, validation_index in kf.split(x):
+                    x_train, x_val, y_train, y_val = x[train_index], x[validation_index], y[train_index], y[
+                        validation_index]
+                    temp_node, temp_indices = self._get_categorical_node_col_type_numeric(x_train, y_train)
+                    if temp_node is None:
+                        return node, node.split_purity, indices
                     left_train_mean, right_train_mean = np.mean(y_train[temp_indices['left']]), np.mean(
                         y_train[temp_indices['right']])
-                except:
-                    a = 5
-                left_val_response, right_val_response = [], []
-                for val in y_val:
-                    left_val_response.append(val) if val in temp_node.left_values else right_val_response.append(val)
-                validation_error += self.calculate_fold_error(np.array(left_val_response), np.array(right_val_response),
-                                                              left_train_mean,
-                                                              right_train_mean)
-
-        return node, validation_error, indices
+                    left_val_response, right_val_response = [], []
+                    for val in y_val:
+                        left_val_response.append(val) if val in temp_node.left_values else right_val_response.append(val)
+                    validation_error += self.calculate_fold_error(np.array(left_val_response), np.array(right_val_response),
+                                                              left_train_mean,right_train_mean)
+                return node, validation_error, indices
+            else:
+                return nans

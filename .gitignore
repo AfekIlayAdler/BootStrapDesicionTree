@@ -12,3 +12,11 @@
 /catboost_info/*
 *checkpoints*
 /experiments/interaction/.ipynb_checkpoints/*
+/experiments/interaction/catboost_info/*
+/experiments/interaction/old/*
+/experiments/detect_uninformative_feature_simulated_data/catboost_info/*
+/experiments/detect_uninformative_feature_simulated_data/old/*
+*.ipynb_checkpoints*
+/experiments/detect_uninformative_feature_boston_house_prices/.ipynb_checkpoints/detect_uninformative_feature_main-checkpoint.py
+/experiments/detect_uninformative_feature_simulated_data/.ipynb_checkpoints/detect_uninformative_feature_simulated_data-checkpoint.py
+/experiments/interaction/.ipynb_checkpoints/plot_results-checkpoint.ipynb
