@@ -8,23 +8,7 @@ import pickle
 from gradient_boosting_trees.gradient_boosting_regressor import CartGradientBoostingRegressor, \
     CartGradientBoostingRegressorKfold
 
-dtypes = {'CRIM': 'float64',
-          'ZN': 'float64',
-          'INDUS': 'float64',
-          'CHAS': 'category',
-          'NOX': 'float64',
-          'RM': 'float64',
-          'AGE': 'float64',
-          'DIS': 'float64',
-          'RAD': 'category',
-          'TAX': 'float64',
-          'PTRATIO': 'float64',
-          'B': 'float64',
-          'LSTAT': 'float64',
-          'y': 'float64'}
 
-sorted_index = ['AGE', 'B', 'CHAS', 'CRIM', 'DIS', 'INDUS', 'LSTAT', 'NOX', 'PTRATIO',
-                'RAD', 'RANDOM_CATEGORY', 'RM', 'TAX', 'ZN']
 
 if __name__ == '__main__':
     N_EXPERIMENTS = 1
