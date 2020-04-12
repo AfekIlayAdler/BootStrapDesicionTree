@@ -119,3 +119,16 @@ class CartRegressionTreeKFold(BaseTree):
                          max_depth=max_depth,
                          min_impurity_decrease=min_impurity_decrease,
                          min_samples_split=min_samples_split)
+
+
+class CartClassificationTreeKFold(BaseTree):
+    def __init__(self,
+                 min_samples_leaf=MIN_SAMPLES_LEAF,
+                 max_depth=MAX_DEPTH,
+                 min_impurity_decrease=MIN_IMPURITY_DECREASE,
+                 min_samples_split=MIN_SAMPLES_SPLIT):
+        super().__init__(node_getter=KFoldGetNode,
+                         splitter=CartTwoClassClassificationSplitter(min_samples_leaf),
+                         max_depth=max_depth,
+                         min_impurity_decrease=min_impurity_decrease,
+                         min_samples_split=min_samples_split)
