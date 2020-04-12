@@ -1,1 +1,1 @@
-this implantation is inspired by "https://machinelearningmastery.com/implement-decision-tree-algorithm-scratch-python/"
+
