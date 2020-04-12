@@ -24,11 +24,8 @@ def create_x_y(category_size, a):
     X['x1'] = np.random.randn(N_ROWS)
     sigma = np.random.randn(N_ROWS)
     left_group = [i for i in range(category_size // 2)]
-    right_group = [i for i in range(category_size) if i not in left_group]
     left_indicator = (X['x1'] > 0)*1
-    right_indicator = (X['x1'] <= 0)*1
-    y = a * left_indicator * X[CATEGORY_COLUMN_NAME].isin(left_group) + right_indicator * X[CATEGORY_COLUMN_NAME].isin(
-        right_group) + sigma
+    y = a * left_indicator + (1-a)*X[CATEGORY_COLUMN_NAME].isin(left_group) + sigma
     return X, y
 
 

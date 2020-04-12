@@ -1,9 +1,9 @@
 from pathlib import Path
-from numpy import arange
+from numpy import arange, round
 
 # exp
 CATEGORIES = list(arange(2, 10, 2)) + list(arange(10, 110, 10))
-A_VALUES = arange(16)
+A_VALUES = [str(round(x,3)) for x in arange(0,1.05,0.05)]
 N_EXPERIMENTS = 1
 N_PERMUTATIONS = 5
 
