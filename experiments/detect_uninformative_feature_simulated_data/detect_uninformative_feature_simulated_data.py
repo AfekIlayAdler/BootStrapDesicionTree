@@ -58,7 +58,9 @@ def worker(model_name, variant, exp_number, category_size):
                                 learning_rate=LEARNING_RATE,
                                 loss_function='RMSE', logging_level='Silent')
         reg.fit(train_pool)
-    results_df = pd.DataFrame(columns=['model', 'categories', 'exp','gain', 'permutation_train', 'permutation_test', 'shap_train', 'shap_test'])
+    results_df = pd.DataFrame(
+        columns=['model', 'categories', 'exp', 'gain', 'permutation_train', 'permutation_test', 'shap_train',
+                 'shap_test'])
     results_df.loc[0, ['model', 'categories', 'exp']] = [F"{model_name}_{variant}", category_size, exp_number]
     # fi gain
     if model_name == 'ours':
@@ -100,9 +102,8 @@ if __name__ == '__main__':
     models = {
         'xgboost': ['one_hot', 'mean_imputing'],
         'catboost': ['vanilla', 'mean_imputing'],
-        'sklearn': ['one_hot', 'mean_imputing']}
-        # 'ours': ['Kfold', 'CartVanilla']}
-        # 'ours': ['Kfold']}
+        'sklearn': ['one_hot', 'mean_imputing'],
+        'ours': ['Kfold', 'CartVanilla']}
 
     n_experiments = len(all_experiments())
     print(f"n experimets for each model: {n_experiments}")
