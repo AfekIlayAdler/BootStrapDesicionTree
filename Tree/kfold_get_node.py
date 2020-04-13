@@ -62,8 +62,8 @@ class KFoldGetNode(GetNode):
                     left_train_mean, right_train_mean = np.mean(y_train[temp_indices['left']]), np.mean(
                         y_train[temp_indices['right']])
                     left_val_response, right_val_response = [], []
-                    for val in y_val:
-                        left_val_response.append(val) if val in temp_node.left_values else right_val_response.append(val)
+                    for i, val in enumerate(x_val):
+                        left_val_response.append(y_val[i]) if val in temp_node.left_values else right_val_response.append(y_val[i])
                     validation_error += self.calculate_fold_error(np.array(left_val_response), np.array(right_val_response),
                                                               left_train_mean,right_train_mean)
                 return node, validation_error, indices
