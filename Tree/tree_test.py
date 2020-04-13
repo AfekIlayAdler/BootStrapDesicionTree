@@ -24,27 +24,42 @@ from Tree.tree_visualizer import TreeVisualizer
 #     return df, pd.Series(y)
 
 
-def create_x_y(category_size = 50, a = 5):
+# def create_x_y(category_size = 50, a = 5):
+#     a = float(a)
+#     N_ROWS = 100000
+#     X = pd.DataFrame()
+#     CATEGORY_COLUMN_NAME = 'cat'
+#     X[CATEGORY_COLUMN_NAME] = np.random.randint(0, category_size, N_ROWS)
+#     X[CATEGORY_COLUMN_NAME] = X[CATEGORY_COLUMN_NAME].astype('category')
+#     X['x1'] = np.random.randn(N_ROWS)
+#     sigma = np.random.randn(N_ROWS)
+#     left_group = [i for i in range(category_size // 2)]
+#     right_group = [i for i in range(category_size) if i not in left_group]
+#     left_indicator = (X['x1'] > 0)*1
+#     right_indicator = (X['x1'] <= 0)*1
+#     y = a * (left_indicator * X[CATEGORY_COLUMN_NAME].isin(left_group)*1 + right_indicator * X[CATEGORY_COLUMN_NAME].isin(
+#         right_group)*1) + sigma
+#     return X, y
+
+def create_x_y():
+    a = 0.1
     a = float(a)
-    N_ROWS = 100000
+    N_ROWS = 1000
+    category_size = 10
+    CATEGORY_COLUMN_NAME = 'category'
     X = pd.DataFrame()
-    CATEGORY_COLUMN_NAME = 'cat'
     X[CATEGORY_COLUMN_NAME] = np.random.randint(0, category_size, N_ROWS)
     X[CATEGORY_COLUMN_NAME] = X[CATEGORY_COLUMN_NAME].astype('category')
     X['x1'] = np.random.randn(N_ROWS)
-    sigma = np.random.randn(N_ROWS)
+    sigma = 0.1 * np.random.randn(N_ROWS)
     left_group = [i for i in range(category_size // 2)]
-    right_group = [i for i in range(category_size) if i not in left_group]
-    left_indicator = (X['x1'] > 0)*1
-    right_indicator = (X['x1'] <= 0)*1
-    y = a * (left_indicator * X[CATEGORY_COLUMN_NAME].isin(left_group)*1 + right_indicator * X[CATEGORY_COLUMN_NAME].isin(
-        right_group)*1) + sigma
+    y = a* (X['x1'] > 0)  + (1-a)* X[CATEGORY_COLUMN_NAME].isin(left_group) + sigma
     return X, y
 
 
 if __name__ == '__main__':
     EXP = 'simulation'  # 'boston'
-    KFOLD = False
+    KFOLD = True
     MAX_DEPTH = 5
     tree = CartRegressionTreeKFold(max_depth=MAX_DEPTH) if KFOLD else CartRegressionTree(max_depth=MAX_DEPTH)
     if EXP == 'boston':

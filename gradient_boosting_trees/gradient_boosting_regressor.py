@@ -29,7 +29,6 @@ class GradientBoostingRegressor(GradientBoostingMachine):
         self.base_prediction = None
         self.features = None
         self.trees = []
-        self.mean = None
 
     def compute_gradient(self, x, y):
         temp_x = x.copy()
@@ -48,7 +47,6 @@ class GradientBoostingRegressor(GradientBoostingMachine):
         self.features = X.columns
         self.base_prediction = mean(y)
         f = mean(y)
-        self.mean = f
         for m in range(self.n_estimators):
             if m > 0 and isinstance(self.trees[-1].root, Leaf):  # if the previous tree was a bark then we stop
                 return
@@ -61,7 +59,7 @@ class GradientBoostingRegressor(GradientBoostingMachine):
         X = data.copy()
         if not isinstance(X, DataFrame):
             X = DataFrame(X, columns = self.features)
-        X['prediction'] = self.mean
+        X['prediction'] = self.base_prediction
         for tree in self.trees:
             X['prediction'] += self.learning_rate * tree.predict(X.to_dict('records'))
         return X['prediction']
@@ -134,20 +132,35 @@ if __name__ == '__main__':
     #     y = np.random.random(n_rows) if regression else np.random.randint(2, size=n_rows)
     #     return df, pd.Series(y)
 
-    def create_x_y(category_size=52):
-        A1 = 3
-        A2 = 2
-        SIGMA = 10
-        N_ROWS = 10 ** 3
-        CATEGORY_COLUMN_NAME = 'random_category'
-        VAL_RATIO = 0.15
+    # def create_x_y(category_size=52):
+    #     A1 = 3
+    #     A2 = 2
+    #     SIGMA = 10
+    #     N_ROWS = 10 ** 3
+    #     CATEGORY_COLUMN_NAME = 'random_category'
+    #     VAL_RATIO = 0.15
+    #     X = pd.DataFrame()
+    #     X['x1'] = np.random.randn(N_ROWS)
+    #     X['x2'] = np.random.randn(N_ROWS)
+    #     sigma = SIGMA * np.random.randn(N_ROWS)
+    #     y = A1 * X['x1'] + A2 * X['x2'] + sigma
+    #     X[CATEGORY_COLUMN_NAME] = np.random.randint(0, category_size, N_ROWS)
+    #     X[CATEGORY_COLUMN_NAME] = X[CATEGORY_COLUMN_NAME].astype('category')
+    #     return X, y
+
+    def create_x_y():
+        a = 0.1
+        a = float(a)
+        N_ROWS = 1000
+        category_size = 10
+        CATEGORY_COLUMN_NAME = 'category'
         X = pd.DataFrame()
-        X['x1'] = np.random.randn(N_ROWS)
-        X['x2'] = np.random.randn(N_ROWS)
-        sigma = SIGMA * np.random.randn(N_ROWS)
-        y = A1 * X['x1'] + A2 * X['x2'] + sigma
         X[CATEGORY_COLUMN_NAME] = np.random.randint(0, category_size, N_ROWS)
         X[CATEGORY_COLUMN_NAME] = X[CATEGORY_COLUMN_NAME].astype('category')
+        X['x1'] = np.random.randn(N_ROWS)
+        sigma = 0.1 * np.random.randn(N_ROWS)
+        left_group = [i for i in range(category_size // 2)]
+        y = a * (X['x1'] > 0) * 1 + (1 - a) * X[CATEGORY_COLUMN_NAME].isin(left_group) + sigma
         return X, y
 
 
@@ -192,4 +205,7 @@ if __name__ == '__main__':
         print(end - start)
         tree_vis = TreeVisualizer()
         tree_vis.plot(reg.trees[0].root)
+        tree_vis.plot(reg.trees[1].root)
+        tree_vis.plot(reg.trees[2].root)
+        print(reg.n_trees)
         print(reg.compute_feature_importance())

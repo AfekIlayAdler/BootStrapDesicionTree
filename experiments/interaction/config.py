@@ -1,25 +1,57 @@
-from pathlib import Path
-from numpy import arange, round
+import shap
+from numpy import arange, abs
+from numpy.random import randint, randn
+
+
+from pandas import DataFrame
+
+from experiments.default_config import CATEGORY_COLUMN_NAME, N_ROWS, MAX_DEPTH, N_ESTIMATORS, LEARNING_RATE
 
 # exp
 CATEGORIES = list(arange(2, 10, 2)) + list(arange(10, 110, 10))
-A_VALUES = [str(round(x,3)) for x in arange(0,1.05,0.05)]
+A_VALUES = arange(16)
 N_EXPERIMENTS = 1
-N_PERMUTATIONS = 5
 
 # data
 SIGMA = 3
-N_ROWS = 10 ** 3
-VAL_RATIO = 0.15
-CATEGORY_COLUMN_NAME = 'category'
-Y_COL_NAME = 'y'
-
-# gbm
-MAX_DEPTH = 3
-N_ESTIMATORS = 100
-LEARNING_RATE = 0.1
 
 # io
-MODELS_DIR = Path(F"results/models/")
-RESULTS_DIR = Path(F"results/experiments_results/")
 EXP_NAME = F"interaction_{MAX_DEPTH}_nestimators_{N_ESTIMATORS}_learning_rate_{LEARNING_RATE}"
+CATEGORICAL_COLUMNS = [CATEGORY_COLUMN_NAME]
+CATEGORICAL_FEATURES = [0]
+#
+N_PROCESS = 2
+
+DEBUG = False
+MODELS = {
+    'xgboost': ['one_hot', 'mean_imputing'],
+    'catboost': ['vanilla', 'mean_imputing'],
+    'sklearn': ['one_hot', 'mean_imputing'],
+    'ours': ['Kfold', 'CartVanilla']}
+
+
+def create_x_y(category_size, a):
+    a = float(a)
+    X = DataFrame()
+    X[CATEGORY_COLUMN_NAME] = randint(0, category_size, N_ROWS)
+    X[CATEGORY_COLUMN_NAME] = X[CATEGORY_COLUMN_NAME].astype('category')
+    X['x1'] = randn(N_ROWS)
+    sigma = randn(N_ROWS)
+    left_group = [i for i in range(category_size // 2)]
+    right_group = [i for i in range(category_size) if i not in left_group]
+    left_indicator = (X['x1'] > 0) * 1
+    right_indicator = (X['x1'] <= 0) * 1
+    y = a * (left_indicator * X[CATEGORY_COLUMN_NAME].isin(left_group) + right_indicator * X[CATEGORY_COLUMN_NAME].isin(
+        right_group)) + sigma
+    return X, y
+
+
+def all_experiments():
+    return [(exp_number, category_size, a) for exp_number in range(N_EXPERIMENTS)
+            for category_size in CATEGORIES
+            for a in A_VALUES]
+
+
+n_total_experiments = len(all_experiments())
+
+
